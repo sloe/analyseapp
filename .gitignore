@@ -1,3 +1,6 @@
+# Wing IDE user files
+*.wpu
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
