@@ -59,3 +59,6 @@ def video():
                 width=width)
 
 
+def select():
+    tree_selector = sloelib_get_tree_selector('final')
+    return dict(tree_selector)
