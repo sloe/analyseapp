@@ -20,7 +20,7 @@ def sloelib_get_tree():
         logging.info("Loaded tree")        
         return tree
         
-    return cache.ram('sloelib_tree', reload_tree, time_expire=360)
+    return cache.disk('sloelib_tree', reload_tree, time_expire=360)
 
 
 def sloelib_get_tree_selector(params):
@@ -36,7 +36,7 @@ def sloelib_get_tree_selector(params):
                     item_spec = ("%sx%s %.2fs %.1fMB" %
                                  (item.video_width, item.video_height, float(item.video_duration), float(item.video_size) / 2**20))
                         
-                    item_title = "%s (%s %s)" % (item.name, os.path.splitext(item.leafname)[1], item_spec)
+                    item_title = "%s (%s)" % (item.name, item_spec)
                     
                     this_selector.append({
                         'uuid': item.uuid,

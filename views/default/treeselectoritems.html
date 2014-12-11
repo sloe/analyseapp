@@ -1,0 +1,5 @@
+<select id="item_select" onchange="none();">
+{{for item_entry in item_entries:}}
+    <option value='{{=item_entry['uuid']}}'>{{=item_entry['title']}}</option>
+{{pass}}
+</select>

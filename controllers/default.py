@@ -61,4 +61,13 @@ def video():
 
 def select():
     tree_selector = sloelib_get_tree_selector('final')
-    return dict(tree_selector)
+    return dict(tree_selector=tree_selector)
+
+
+def treeselectoritems():
+    tree_selector = sloelib_get_tree_selector('final')
+    tree_entries = [x[1] for x in tree_selector if x[0] == request.vars.tree_selected]
+    if len(tree_entries) == 0:
+        return dict(item_entries=[{'title': '-', 'uuid': ''}])
+    item_entries = tree_entries[0]
+    return dict(item_entries=item_entries)
