@@ -1,23 +1,6 @@
 {{extend 'layout.html'}}
 
-<select id="tree_select" onchange="changeTree();">
-{{for tree in tree_selector:}}
-    <option value='{{=tree[0]}}'>{{=tree[0]}}</option>
-{{pass}}
-</select>
+{{=selector_form}}
+{{=selector_script}}
 
-<input type="hidden" id="tree_selected" name="tree_selected" value="">
-<span id="itemsDiv"></span>
 
-<script language="javascript">
-    function changeTree(){
-        var treeopts = document.getElementById("tree_select");
-        var tree_selected = treeopts.options[treeopts.selectedIndex].value;
-        var x = document.getElementById("tree_selected");
-        x.value = tree_selected;
-        ajax('treeselectoritems', ['tree_selected'], 'itemsDiv');
-    };
-    jQuery(document).ready(function(){
-        ajax('treeselectoritems', ['tree_selected'], 'itemsDiv');
-    });
-</script>

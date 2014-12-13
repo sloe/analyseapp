@@ -34,7 +34,7 @@ def video():
 
     size_form, size_script = oar_video_size_form((width, height))
 
-    if size_form.process(keepvalues=True).accepted:
+    if size_form.process(keepvalues=True, onsuccess=None).accepted:
         match = re.match(r'(\d+)x(\d+)$', size_form.vars.f_size)
         if not match:
             size_errors.append(T("Cannot decode size - must be in the form 123x456"))
@@ -60,13 +60,28 @@ def video():
 
 
 def select():
-    tree_selector = sloelib_get_tree_selector('final')
-    return dict(tree_selector=tree_selector)
+    select_errors = []
+
+    selector_form, selector_script = oar_selector_form(None)
+
+    if selector_form.process(keepvalues=True, onsuccess=None).accepted:
+       response.flash += "Changed to %s %s" % (selector_form.vars.treeselector_tree, selector_form.vars.treeselector_items)
+    elif selector_form.errors:
+        select_errors.append(T("Selector form error"))
+
+    if select_errors:
+        response.flash += ". ".join([str(x) for x in select_errors])
+
+    return dict(
+        selector_form=selector_form,
+        selector_script=selector_script
+    )
 
 
 def treeselectoritems():
     tree_selector = sloelib_get_tree_selector('final')
-    tree_entries = [x[1] for x in tree_selector if x[0] == request.vars.tree_selected]
+    tree_selected = "/".join(request.args)
+    tree_entries = [x[1] for x in tree_selector if x[0] == tree_selected]
     if len(tree_entries) == 0:
         return dict(item_entries=[{'title': '-', 'uuid': ''}])
     item_entries = tree_entries[0]
