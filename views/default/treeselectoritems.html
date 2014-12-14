@@ -1,5 +1,11 @@
-<select id="item_select" onchange="none();">
-{{for item_entry in item_entries:}}
-    <option value='{{=item_entry['uuid']}}'>{{=item_entry['title']}}</option>
+<select id="item_select">
+{{for item_entry in item_entries:
+    if item_entry['uuid'] == current_item_uuid:
+        selectedness = 'selected '
+    else:
+        selectedness = ''
+    pass
+}}
+    <option {{=selectedness}}value='{{=item_entry['uuid']}}'>{{=item_entry['title']}}</option>
 {{pass}}
 </select>

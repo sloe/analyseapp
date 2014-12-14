@@ -62,10 +62,13 @@ def video():
 def select():
     select_errors = []
 
-    selector_form, selector_script = oar_selector_form(None)
+    if request.vars.treeselector_items:
+        session.current_selection = request.vars.treeselector_items
+
+    selector_form, selector_script = oar_selector_form(session.current_selection)
 
     if selector_form.process(keepvalues=True, onsuccess=None).accepted:
-       response.flash += "Changed to %s %s" % (selector_form.vars.treeselector_tree, selector_form.vars.treeselector_items)
+        response.flash += T("Changed to %s %s" % (selector_form.vars.treeselector_tree, selector_form.vars.treeselector_items))
     elif selector_form.errors:
         select_errors.append(T("Selector form error"))
 
@@ -79,10 +82,11 @@ def select():
 
 
 def treeselectoritems():
-    tree_selector = sloelib_get_tree_selector('final')
+    tree_selector, selector_by_uuid = sloelib_get_tree_selector('final')
     tree_selected = "/".join(request.args)
     tree_entries = [x[1] for x in tree_selector if x[0] == tree_selected]
-    if len(tree_entries) == 0:
-        return dict(item_entries=[{'title': '-', 'uuid': ''}])
-    item_entries = tree_entries[0]
-    return dict(item_entries=item_entries)
+    item_entries=[{'title': 'Select', 'uuid': ''}] + tree_entries[0]
+    return dict(
+        current_item_uuid = session.current_selection or '',
+        item_entries=item_entries
+    )

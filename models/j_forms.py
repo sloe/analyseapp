@@ -39,7 +39,9 @@ $('document').ready(function(){
 
 
 def oar_selector_form(current_selection):
-    tree_selector = sloelib_get_tree_selector('final')
+    tree_selector, selector_by_uuid = sloelib_get_tree_selector('final')
+
+    current_tree, current_tree_items, current_item_record = selector_by_uuid.get(current_selection, (None, tree_selector[0][1], {'uuid': None}))
 
     script = SCRIPT("""
 $('document').ready(function(){
@@ -58,9 +60,11 @@ function treeselector_tree_onchange(){
 
     subtree_names = [x[0] for x in tree_selector]
 
+    current_tree_options = [OPTION('Select', _value='')] + [OPTION(x['title'], _value=x['uuid']) for x in current_tree_items]
+
     form = FORM(
-        SELECT(*subtree_names, _id='treeselector_tree', _name='treeselector_tree', _onchange='treeselector_tree_onchange();'),
-        SELECT('Loading...', _id='treeselector_items',  _name='treeselector_items'),
+        SELECT(*subtree_names, value=current_tree, _id='treeselector_tree', _name='treeselector_tree', _onchange='treeselector_tree_onchange();'),
+        SELECT(*current_tree_options, value=current_item_record.get('uuid', None), _id='treeselector_items',  _name='treeselector_items'),
         _id='treeselector_form'
     )
 
