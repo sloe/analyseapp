@@ -5,8 +5,9 @@
   <!-- Chang URLs to wherever Video.js files will be hosted -->
   <link href="{{=URL("static", "video-js/video-js.css")}}" rel="stylesheet" type="text/css">
   <!-- video.js must be in the <head> for older IEs to work. -->
-  <script src="{{=URL("static", "video-js/video.js")}}"></script>
+  <script src="{{=URL("static", "video-js/video.dev.js")}}"></script>
   <script src="{{=URL("static", "video-js/video-framebyframe.js")}}"></script>
+  <script src="{{=URL("static", "video-js/video-sloe.js")}}"></script>
 
   <!-- Unless using the CDN hosted version, update the URL to the Flash SWF -->
   <script>
@@ -14,9 +15,12 @@
   </script>
 {{=size_form}}
 {{=size_script}}
+{{import urllib}}
 <video id="example_video_1" class="video-js vjs-default-skin" controls preload="auto" width="{{=width}}" height="{{=height}}"
-    data-setup='{ "playbackRates": [0.0625, 0.125, 0.25, 0.5, 1, 2, 4] }'>
-  <source src="https://googledrive.com/host/0B64A2SOOXw1pTmpKenZYd3FoR1U" type='video/mp4' />
+    data-setup='{ "playbackRates": [0.015625, 0.03125, 0.0625, 0.125, 0.25, 0.5, 1, 2, 4] }'>
+  <!-- <source src="https://googledrive.com/host/0B64A2SOOXw1pTmpKenZYd3FoR1U" type='video/mp4' /> -->
+  <source src="{{=URL('static', 'oarstack/final/derived/hoc2014/div4/403 Peterhouse M2 Beach Ball 3rd Mays 8+ yt8.mp4')}}" type='video/mp4' />
+
   <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
 </video>
 <script type='text/javascript'>
@@ -26,13 +30,17 @@
       preload: 'auto',
       plugins: {
         framebyframe: {
-          fps: 30,
+          fps: 59.94,
           steps: [
             { text: '-5', step: -5 },
             { text: '-1', step: -1 },
             { text: '+1', step: 1 },
             { text: '+5', step: 5 },
           ]
+        },
+      
+        sloe: {
+          fps: 29.97
         }
       }
     });

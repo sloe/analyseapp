@@ -5,14 +5,14 @@
 ##################################################################
 [project attributes]
 proj.directory-list = [{'dirloc': loc('.'),
-                        'excludes': (),
-                        'filter': u'*',
+                        'excludes': [u'static/oarstack'],
+                        'filter': '*',
                         'include_hidden': False,
                         'recursive': True,
                         'watch_for_changes': True}]
 proj.file-list = [loc('../../web2py.py')]
 proj.file-type = 'shared'
 proj.launch-config = {loc('../../web2py.py'): ('project',
-        (u"-a '<recycle>'",
+        (u"-a '<recycle>' -D 0 --log mylog.txt",
          ''))}
 proj.main-file = loc('../../web2py.py')
