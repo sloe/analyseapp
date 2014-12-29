@@ -224,6 +224,17 @@
 
       // exposed plugin API
       player.markers = {
+         getNumberOf : function() {
+            // get number of markers
+            return markersList.length;
+         },
+         getFirst : function() {
+            // get first marker
+            if (markersList.length > 0) {
+               return markersList[0];
+            }
+            return false;
+         },
          getNext : function(marker) {
             // get next marker after this one
             for (var i = 0; i < markersList.length; i++) {

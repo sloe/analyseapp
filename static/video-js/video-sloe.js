@@ -18,15 +18,23 @@ videojs.sloelib = (function() {
         },
 
         markerTip: function(marker) {
-            var next_marker = marker.sloe_markers.getNext(marker);
             var speed_factor = marker.sloedata.speed_factor;
-            if (next_marker) {
-
-                var interval = (next_marker.time - marker.time) * speed_factor;
-                var frame_interval = next_marker.sloe_frame - marker.sloe_frame;
-                return '' + interval.toFixed(2) + 's<br/>' + (60 / interval).toFixed(2) + ' per min<br/>' + frame_interval + 'f';
+            var header = 'Time to next: ';
+            var divisor = 1;
+            var next_marker = marker.sloe_markers.getNext(marker);
+            if (!next_marker) {
+                // Last marker so show averages
+                next_marker = marker;
+                var marker = marker.sloe_markers.getFirst();
+                divisor = marker.sloe_markers.getNumberOf() - 1;
+                header = 'Average of ' + divisor + '<br/>';
+            }
+            if (divisor > 0) {
+                var interval = (next_marker.time - marker.time) * speed_factor / divisor;
+                var frame_interval = (next_marker.sloe_frame - marker.sloe_frame) / divisor;
+                return header + interval.toFixed(2) + 's<br/>=> ' + (60 / interval).toFixed(2) + ' per min<br/>' + frame_interval.toFixed(2) + 'f';
             } else {
-                return '-';
+                return 'Place another<br/>marker for<br/>timing info';
             }
         },
 
@@ -77,7 +85,6 @@ function sloe(options) {
     videojs.SloeFrameButton = videojs.Button.extend({
         init: function(player, options) {
             videojs.Button.call(this, player, options);
-            this.on('click', this.onClick);
             this.on(player, 'timeupdate', this.onTimeUpdate);
             this.on(player, 'pause', this.onPause);
         },
@@ -100,7 +107,6 @@ function sloe(options) {
     videojs.SloeMarkButton = videojs.Button.extend({
         init: function(player, options) {
             videojs.Button.call(this, player, options);
-            this.on('click', this.onClick);
         },
     });
 
