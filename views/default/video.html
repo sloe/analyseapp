@@ -2,11 +2,12 @@
 
 <h1>Oarstack secret testing site</h1>
 
-  <!-- Chang URLs to wherever Video.js files will be hosted -->
   <link href="{{=URL("static", "video-js/video-js.css")}}" rel="stylesheet" type="text/css">
+  <link href="{{=URL("static", "video-js/videojs.markers.css")}}" rel="stylesheet" type="text/css">
   <!-- video.js must be in the <head> for older IEs to work. -->
   <script src="{{=URL("static", "video-js/video.dev.js")}}"></script>
   <script src="{{=URL("static", "video-js/video-framebyframe.js")}}"></script>
+  <script src="{{=URL("static", "video-js/videojs-markers.js")}}"></script>
   <script src="{{=URL("static", "video-js/video-sloe.js")}}"></script>
 
   <!-- Unless using the CDN hosted version, update the URL to the Flash SWF -->
@@ -38,9 +39,10 @@
             { text: '+5', step: 5 },
           ]
         },
-      
+
         sloe: {
-          fps: 29.97
+          fps: 29.97,
+          speed_factor: '1/8'
         }
       }
     });
