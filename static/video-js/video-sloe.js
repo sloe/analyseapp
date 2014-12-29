@@ -8,9 +8,14 @@ videojs.sloelib = (function() {
             var synced_time = nearest_frame / fps;
             player.currentTime(synced_time);
             return synced_time;
+        },
+
+        frameEl: function(frame) {
+            var rounded_frame = frame.toFixed(3);
+            return '<div class="vjs-control-content" style="font-size: 11px; line-height: 28px;"><span class="vjs-sloe-frame">' + rounded_frame + '</span></div>';
         }
     };
-    
+
     return sloelib;
 }());
 
@@ -19,30 +24,25 @@ function sloe(options) {
     var player = this;
 
     videojs.SloeSeekBar = videojs.SeekBar.extend({
-        /** @constructor */
         init: function(player, options) {
             videojs.SeekBar.call(this, player, options);
-            videojs.log("init");
         }
     });
-        
+
     videojs.SloeSeekBar.prototype.onMouseUp = function(event) {
-    videojs.log('onmouseup');
         videojs.SeekBar.prototype.onMouseUp.call(this, event);
-        videojs.sloelib.syncToFrame(player, 29.97);
+        videojs.sloelib.syncToFrame(player, player.sloedata.fps);
     };
 
     controlBar = player.getChild('controlBar');
     progressControl = controlBar.getChild('progressControl');
 
-    progressControl.removeChild('seekBar')
-    progressControl.addChild('sloeSeekBar')
-    
+    progressControl.removeChild('seekBar');
+    progressControl.addChild('sloeSeekBar');
 
-    videojs.SloeTestButton = videojs.Button.extend({
+    videojs.SloeFrameButton = videojs.Button.extend({
         init: function(player, options) {
             videojs.Button.call(this, player, options);
-            this.fps = options.fps;
             this.seeking = false;
             this.on('click', this.onClick);
             this.on(player, 'timeupdate', this.onTimeUpdate);
@@ -50,31 +50,33 @@ function sloe(options) {
         },
     });
 
-    videojs.SloeTestButton.prototype.onClick = function() {
+    videojs.SloeFrameButton.prototype.onClick = function() {
         var time = player.currentTime();
         this.el().innerHTML = time*30;
     }
 
-    videojs.SloeTestButton.prototype.onTimeUpdate = function() {
+    videojs.SloeFrameButton.prototype.onTimeUpdate = function() {
         var time = player.currentTime();
-        this.el().innerHTML = time * this.fps;
+        this.el().innerHTML = videojs.sloelib.frameEl(time * player.sloedata.fps);
     }
 
-    videojs.SloeTestButton.prototype.onPause = function() {
-        videojs.sloelib.syncToFrame(player, this.fps);
+    videojs.SloeFrameButton.prototype.onPause = function() {
+        videojs.sloelib.syncToFrame(player, player.sloedata.fps);
     }
 
     player.ready(function() {
         player.pause();
+        player.sloedata = {
+            fps: options.fps
+        };
         player.controlBar.addChild(
-            new videojs.SloeTestButton(player, {
+            new videojs.SloeFrameButton(player, {
                 el: videojs.Component.prototype.createEl(null, {
                     className: 'vjs-res-button vjs-control',
-                    innerHTML: '<div class="vjs-control-content" style="font-size: 11px; line-height: 28px;"><span class="vjs-fbf">' + 'sloe' + '</span></div>',
-                    value: 'Murgh',
+                    innerHTML: videojs.sloelib.frameEl(0),
+                    value: '',
                     role: 'button'
-                    }),
-                fps: options.fps
+                    })
             })
         );
     });
