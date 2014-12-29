@@ -224,6 +224,13 @@
 
       // exposed plugin API
       player.markers = {
+         get : function(index) {
+            if (index < markersList.length) {
+               return markersList[index];
+            } else {
+               return false;
+            }
+         },
          getNumberOf : function() {
             // get number of markers
             return markersList.length;
@@ -243,6 +250,22 @@
                }
             }
             return false;
+         },
+         getNearest : function(time) {
+            // get nearest marker to the time given
+            if (markersList.length == 0) {
+               return false;
+            }
+            var found_distance = Number.MAX_VALUE;
+            var found_index = 0;
+            for (var i = 0; i < markersList.length; i++) {
+               var this_distance = Math.abs(markersList[i].time - time);
+               if (this_distance < found_distance) {
+                  found_index = i;
+                  found_distance = this_distance;
+               }
+            }
+            return found_index;
          },
          next : function() {
             // go to the next marker from current timestamp

@@ -52,8 +52,8 @@ videojs.sloelib = (function() {
             return '<div class="vjs-control-content" style="font-size: 11px; line-height: 28px;"><span class="vjs-sloe-frame">' + rounded_frame + '</span></div>';
         },
 
-        markButtonEl: function(marked) {
-            var content = marked ? 'UNMARK' : 'MARK';
+        markButtonEl: function(is_mark) {
+            var content = is_mark ? 'MARK' : 'UNMARK';
             return '<div class="vjs-control-content" style="font-size: 11px; line-height: 28px;"><span class="vjs-sloe-mark">' + content + '</span></div>';
         }
     };
@@ -107,18 +107,58 @@ function sloe(options) {
     videojs.SloeMarkButton = videojs.Button.extend({
         init: function(player, options) {
             videojs.Button.call(this, player, options);
+            this.setMark(true);
+            this.on(player, 'pause', this.onPause);
+            this.on(player, 'play', this.onPlay);
+            this.on(player, 'seeked', this.onPause);
         },
     });
 
     videojs.SloeMarkButton.prototype.onClick = function() {
-        this.el().innerHTML = videojs.sloelib.markButtonEl(true);
-        current_frame = videojs.sloelib.getFrame(player, player.sloedata.fps);
-        player.markers.add([{
-            sloedata: player.sloedata,
-            sloe_frame: current_frame,
-            sloe_markers: player.markers,
-            time: player.currentTime()
-        }]);
+        if (this.is_mark) {
+            var current_frame = videojs.sloelib.getFrame(player, player.sloedata.fps);
+            player.markers.add([{
+                sloedata: player.sloedata,
+                sloe_frame: current_frame,
+                sloe_markers: player.markers,
+                time: player.currentTime()
+            }]);
+        } else {
+            if (player.markers.getNumberOf() > 0) {
+                player.markers.remove([player.markers.getNearest(player.currentTime())]);
+            }
+        }
+
+        if (player.paused()) {
+            this.deriveMarkState();
+        } else {
+            this.setMark(true);
+        }
+    }
+
+    videojs.SloeMarkButton.prototype.setMark = function(is_mark) {
+        this.is_mark = is_mark;
+        this.el().innerHTML = videojs.sloelib.markButtonEl(is_mark);
+    }
+
+    videojs.SloeMarkButton.prototype.deriveMarkState = function() {
+        var nearest_marker = player.markers.get(player.markers.getNearest(player.currentTime()));
+        var is_mark = true;
+        if (nearest_marker) {
+            distance = Math.abs(player.currentTime() - nearest_marker.time);
+            if (distance < 1) {
+                is_mark = false;
+            }
+        }
+        this.setMark(is_mark);
+    }
+
+    videojs.SloeMarkButton.prototype.onPause = function() {
+        this.deriveMarkState();
+    }
+
+    videojs.SloeMarkButton.prototype.onPlay = function() {
+        this.setMark(true);
     }
 
     player.ready(function() {
