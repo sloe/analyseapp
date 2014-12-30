@@ -231,38 +231,58 @@
                return false;
             }
          },
-         getNumberOf : function() {
-            // get number of markers
-            return markersList.length;
+         getNumberOf : function(type) {
+            if (type == '') {
+               return markersList.length;
+            }
+            var num = 0;
+            for (var i = 0; i < markersList.length; i++) {
+               if (markersList[i].type == type) {
+                  num += 1;
+               }
+            }
+            return num;
          },
-         getFirst : function() {
+         getFirst : function(type) {
             // get first marker
-            if (markersList.length > 0) {
+            if (markersList.length == 0) {
+               return false;
+            }
+            if (type == '') {
                return markersList[0];
             }
-            return false;
-         },
-         getNext : function(marker) {
-            // get next marker after this one
             for (var i = 0; i < markersList.length; i++) {
-               if (markersList[i].time > marker.time) {
+               if (markersList[i].type == type) {
                   return markersList[i];
                }
             }
             return false;
          },
-         getNearest : function(time) {
+         getNext : function(marker, type) {
+            // get next marker after this one
+            for (var i = 0; i < markersList.length; i++) {
+               if (type == '' || markersList[i].type == type) {
+                  if (markersList[i].time > marker.time) {
+                     return markersList[i];
+                  }
+               }
+            }
+            return false;
+         },
+         getNearest : function(time, type) {
             // get nearest marker to the time given
             if (markersList.length == 0) {
-               return false;
+               return -1;
             }
             var found_distance = Number.MAX_VALUE;
-            var found_index = 0;
+            var found_index = -1;
             for (var i = 0; i < markersList.length; i++) {
                var this_distance = Math.abs(markersList[i].time - time);
-               if (this_distance < found_distance) {
-                  found_index = i;
-                  found_distance = this_distance;
+               if (type == '' || markersList[i].type == type) {
+                  if (this_distance < found_distance) {
+                     found_index = i;
+                     found_distance = this_distance;
+                  }
                }
             }
             return found_index;
@@ -316,6 +336,9 @@
             player.off("timeupdate", updateBreakOverlay);
             delete player.markers;
             delete player.getMarkers;
+         },
+         setMarkerStyle: function(style){
+            setting.markerStyle = style;
          },
       };
    }
