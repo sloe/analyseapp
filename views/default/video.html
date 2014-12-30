@@ -30,13 +30,20 @@
       autoplay: true,
       preload: 'auto',
       plugins: {
-        framebyframe: {
-          fps: 59.94,
+        sloenudge: {
+          fps: 29.97,
+          speed_factor: '1/8',
           steps: [
-            { text: '-5', step: -5 },
-            { text: '-1', step: -1 },
-            { text: '+1', step: 1 },
-            { text: '+5', step: 5 },
+            '-1.75s',
+            '-0.5s',
+            '-16f',
+            '-4f',
+            '-1f',
+            '1f',
+            '4f',
+            '16f',
+            '0.5s',
+            '1.75s'
           ]
         },
 
