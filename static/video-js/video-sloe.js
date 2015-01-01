@@ -34,6 +34,7 @@ videojs.sloelib = (function() {
             var header = 'Time to next: ';
             var divisor = 1;
             var next_marker = marker.sloe_markers.getNext(marker, marker.type);
+            var is_last_marker = !next_marker;
             var other_type = (marker.type == 'CATCH' ? 'EXTR.' : 'CATCH');
             var next_other_marker = marker.sloe_markers.getNext(marker, other_type);
 
@@ -41,7 +42,7 @@ videojs.sloelib = (function() {
                 // The 'other' marker should appear before the next mark of some time, so if it isn't, ignore it
                 next_other_marker = false;
             }
-            if (!next_marker) {
+            if (is_last_marker) {
                 // Last marker so show averages
                 next_marker = marker;
                 var marker = marker.sloe_markers.getFirst(marker.type);
@@ -52,7 +53,7 @@ videojs.sloelib = (function() {
                 var interval = (next_marker.time - marker.time) * speed_factor / divisor;
                 var frame_interval = (next_marker.sloe_frame - marker.sloe_frame) / divisor;
                 content = header + interval.toFixed(2) + 's<br/>=> Rate ' + (60 / interval).toFixed(2) + '<br/>'
-                if (next_other_marker && divisor == 1) {
+                if (!is_last_marker && next_other_marker && divisor == 1) {
                     var to_other_interval = (next_other_marker.time - marker.time) * speed_factor;
                     var other_to_next_interval = (next_marker.time - next_other_marker.time) * speed_factor;
                     if (marker.type == 'CATCH') {
@@ -69,7 +70,7 @@ videojs.sloelib = (function() {
                         content += 'Recovery: ' + recovery_interval.toFixed(2) + 's<br/>';
                         if (drive_interval > 0) {
                             var ratio = recovery_interval / drive_interval;
-                            if (ratio < 1) {
+                            if (ratio <= 0.99) {
                                 content += 'Ratio: <span style="color:#ff6060">1:' + ratio.toFixed(2) + '</span><br/>';
                             } else {
                                 content += 'Ratio: 1:' + ratio.toFixed(2) + '<br/>';
@@ -88,14 +89,14 @@ videojs.sloelib = (function() {
         syncToFrame: function(player, fps) {
             var current_time = player.currentTime();
             // Adjustment gives lowest frame-steps-again artefacts upon pause
-            var nearest_frame = Math.round((current_time * fps) - 0.25);
+            var nearest_frame = Math.round((current_time * fps) - 0.45);
             var synced_time = nearest_frame / fps;
             player.currentTime(synced_time);
             return synced_time;
         },
 
         frameNudgeButtonEl: function(text) {
-            return '<div class="vjs-control-content" style="font-size: 11px; line-height: 28px;"><span class="vjs-sloe-frame-nudge">' + text + '</span></div>';
+            return '<div class="vjs-control-content" style="font-size: 11px; line-height: 28px; cursor:pointer;"><span class="vjs-sloe-frame-nudge">' + text + '</span></div>';
         },
 
         frameNumberButtonEl: function(frame) {
@@ -105,7 +106,7 @@ videojs.sloelib = (function() {
 
         markButtonEl: function(is_mark, type) {
             var content = (is_mark ? 'MARK<br/>' : 'UNMARK<br/>') + type;
-            return '<div class="vjs-control-content" style="font-size: 11px; line-height: 14px;"><span class="vjs-sloe-mark">' + content + '</span></div>';
+            return '<div class="vjs-control-content" style="font-size: 11px; line-height: 14px; cursor:pointer;"><span class="vjs-sloe-mark">' + content + '</span></div>';
         }
     };
 
@@ -292,16 +293,48 @@ function sloenudge(options) {
             } else {
                 this.time_step =  parseFloat(options.step);
             }
+            this.on('mousedown', this.onMouseDown);
+            this.on('mouseup', this.onMouseUp);
+            this.on(player, 'seeked', this.onSeeked);
         },
     });
 
-    videojs.SloeNudgeButton.prototype.onClick = function() {
-        player.pause();
+    videojs.SloeNudgeButton.prototype.executeStep = function() {
         if (this.frame_step) {
             videojs.sloelib.frameStep(player, player.sloenudgedata.fps, this.frame_step)
         }
         if (this.time_step) {
             videojs.sloelib.frameStep(player, player.sloenudgedata.fps, this.time_step * player.sloenudgedata.fps / player.sloenudgedata.speed_factor)
+        }
+        this.last_step_time = Date.now();
+    }
+
+    videojs.SloeNudgeButton.prototype.onMouseDown = function() {
+        player.pause();
+        this.executeStep();
+        this.mouse_down = true;
+    }
+
+    videojs.SloeNudgeButton.prototype.onMouseUp = function() {
+        this.mouse_down = false;
+        if (this.repeat_timer) {
+            window.clearTimeout(this.repeat_timer);
+            this.repeat_timer = false;
+        }
+    }
+
+    videojs.SloeNudgeButton.prototype.onSeeked = function() {
+        if (this.mouse_down) {
+            var time_to_next = this.last_step_time - Date.now() + 1000;
+            if (time_to_next <= 0) {
+                this.executeStep();
+            } else {
+                var this_button = this;
+                var timer_fn = function() {
+                    this_button.executeStep();
+                }
+                this.repeat_timer = window.setTimeout(timer_fn, time_to_next);
+            }
         }
     }
 
