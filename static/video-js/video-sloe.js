@@ -70,11 +70,7 @@ videojs.sloelib = (function() {
                         content += 'Recovery: ' + recovery_interval.toFixed(2) + 's<br/>';
                         if (drive_interval > 0) {
                             var ratio = recovery_interval / drive_interval;
-                            if (ratio <= 0.99) {
-                                content += 'Ratio: <span style="color:#ff6060">1:' + ratio.toFixed(2) + '</span><br/>';
-                            } else {
-                                content += 'Ratio: 1:' + ratio.toFixed(2) + '<br/>';
-                            }
+                            content += 'Ratio: 1:' + ratio.toFixed(2) + '<br/>';
                         }
                     }
                 }
@@ -101,7 +97,7 @@ videojs.sloelib = (function() {
 
         frameNumberButtonEl: function(frame) {
             var rounded_frame = frame.toFixed(3);
-            return '<div class="vjs-control-content" style="font-size: 11px; line-height: 28px;"><span class="vjs-sloe-frame-number">' + rounded_frame + '</span></div>';
+            return '<div class="vjs-control-content" style="font-size: 11px; line-height: 28px;"><span class="vjs-sloe-frame-number">f=' + rounded_frame + '</span></div>';
         },
 
         markButtonEl: function(is_mark, type) {
@@ -137,6 +133,7 @@ function sloe(options) {
     videojs.SloeFrameNumberButton = videojs.Button.extend({
         init: function(player, options) {
             videojs.Button.call(this, player, options);
+            this.width(60, true);
             this.on(player, 'timeupdate', this.onTimeUpdate);
             this.on(player, 'pause', this.onPause);
         },
@@ -287,6 +284,7 @@ function sloenudge(options) {
     videojs.SloeNudgeButton = videojs.Button.extend({
         init: function(player, options) {
             videojs.Button.call(this, player, options);
+            this.width(6 + 5 * options.step.length, true);
             this.el().innerHTML = videojs.sloelib.frameNudgeButtonEl(options.step)
             if (/f$/.test(options.step)) {
                 this.frame_step = parseFloat(options.step);
