@@ -85,7 +85,7 @@ videojs.sloelib = (function() {
         syncToFrame: function(player, fps) {
             var current_time = player.currentTime();
             // Adjustment gives lowest frame-steps-again artefacts upon pause
-            var nearest_frame = Math.round((current_time * fps) - 0.45);
+            var nearest_frame = Math.round((current_time * fps) - 0.40);
             var synced_time = nearest_frame / fps;
             player.currentTime(synced_time);
             return synced_time;
@@ -103,7 +103,29 @@ videojs.sloelib = (function() {
         markButtonEl: function(is_mark, type) {
             var content = (is_mark ? 'MARK<br/>' : 'UNMARK<br/>') + type;
             return '<div class="vjs-control-content" style="font-size: 11px; line-height: 14px; cursor:pointer;"><span class="vjs-sloe-mark">' + content + '</span></div>';
+        },
+
+        unescapeHtml: function(escaped) {
+            var el = document.createElement('div');
+            el.innerHTML = escaped;
+            return el.childNodes.length === 0 ? "" : el.childNodes[0].nodeValue;
+        },
+
+        update_link: function() {
+            var el = $('#sloe-video-info');
+            var root_url = videojs.options.sloestatic.url;
+            var content = '';
+            content += 'Link: <form action="' + root_url + '" id="sloe-link-form" target="_blank"><input type="text"';
+            content += 'id="sloe-link-url" value="' + root_url + '" style="width: 600px;" onfocus="this.select();" onchange="$(&quot;#sloe-link-form&quot;).attr(&quot;action&quot;, this.value);"/>';
+            content += '<input type="button" id="sloe-link-test-button" value="Test" />';
+            content += videojs.sloelib.unescapeHtml(videojs.options.sloestatic.linkform);
+            content += '</form>';
+            el.html(content);
+            $('#sloe-link-test-button').click(function() {
+                $('#sloe-link-form').submit();
+            });
         }
+
     };
 
     return sloelib;
@@ -354,6 +376,11 @@ function sloenudge(options) {
             );
         });
     });
+
+    $('document').ready(function() {
+        $('#sloe-video-info').on('sloeUpdate', videojs.sloelib.update_link);
+        $('#sloe-video-info').trigger('sloeUpdate');
+    })
 };
 
 videojs.plugin('sloenudge', sloenudge);

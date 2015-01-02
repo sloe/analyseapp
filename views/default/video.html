@@ -13,10 +13,13 @@
   <!-- Unless using the CDN hosted version, update the URL to the Flash SWF -->
   <script>
     videojs.options.flash.swf = "{{=URL("static", "video-js/video-js.swf")}}";
+    videojs.options.sloestatic= {
+      url: "{{=URL("", scheme=True, host=True)}}",
+      linkform: "{{=str(link_form)}}"
+      };
   </script>
 {{=size_form}}
 {{=size_script}}
-{{import urllib}}
 <video id="example_video_1" class="video-js vjs-default-skin" controls preload="auto" width="{{=width}}" height="{{=height}}"
     data-setup='{ "playbackRates": [0.015625, 0.03125, 0.0625, 0.125, 0.25, 0.5, 1, 2, 4] }'>
   <!-- <source src="https://googledrive.com/host/0B64A2SOOXw1pTmpKenZYd3FoR1U" type='video/mp4' /> -->
@@ -54,3 +57,6 @@
       }
     });
   </script>
+
+
+{{=DIV('Info', _class='sloe-video-info', _id='sloe-video-info')}}

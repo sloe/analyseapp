@@ -52,8 +52,11 @@ def video():
     if size_errors:
         response.flash += ". ".join([str(x) for x in size_errors])
 
+    link_form, link_script = oar_link_form()
 
     return dict(height=height,
+                link_form=link_form,
+                link_script=link_script,
                 size_form=size_form,
                 size_script=size_script,
                 width=width)
