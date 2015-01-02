@@ -15,7 +15,8 @@
     videojs.options.flash.swf = "{{=URL("static", "video-js/video-js.swf")}}";
     videojs.options.sloestatic= {
       url: "{{=URL("", scheme=True, host=True)}}",
-      linkform: "{{=str(link_form)}}"
+      linkform: "{{=str(link_form)}}",
+      size: "{{="%dx%d" % (width, height)}}"
       };
   </script>
 {{=size_form}}
@@ -58,5 +59,13 @@
     });
   </script>
 
+{{=DIV(
+INPUT(_type="text", _id="sloe-link-url", _value=URL("", scheme=True, host=True), _style="width:600px;"),
+INPUT(_type="button", _id="sloe-link-test-button", _value="Test"),
+INPUT(_type="button", _id="sloe-link-reset-button", _value="Reset"),
+_class="sloe-link-control",
+_id="sloe-=link-control")
+}}
+{{=link_form}}
 
 {{=DIV('Info', _class='sloe-video-info', _id='sloe-video-info')}}

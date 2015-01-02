@@ -111,18 +111,38 @@ videojs.sloelib = (function() {
             return el.childNodes.length === 0 ? "" : el.childNodes[0].nodeValue;
         },
 
-        update_link: function() {
-            var el = $('#sloe-video-info');
+        updateLink: function() {
             var root_url = videojs.options.sloestatic.url;
-            var content = '';
-            content += 'Link: <form action="' + root_url + '" id="sloe-link-form" target="_blank"><input type="text"';
-            content += 'id="sloe-link-url" value="' + root_url + '" style="width: 600px;" onfocus="this.select();" onchange="$(&quot;#sloe-link-form&quot;).attr(&quot;action&quot;, this.value);"/>';
-            content += '<input type="button" id="sloe-link-test-button" value="Test" />';
-            content += videojs.sloelib.unescapeHtml(videojs.options.sloestatic.linkform);
-            content += '</form>';
-            el.html(content);
+            var content = root_url;
+            var params = [];
+            if ($('#sloe-link-size').prop("checked")) {
+                params.push('size=' + videojs.options.sloestatic.size);
+            }
+            if (params.length > 0) {
+                content += '?';
+            }
+            params.forEach(function(param) {
+                content += param;
+            })
+            $('#sloe-link-url').val(content);
+        },
+
+        attachHandlers: function() {
+            $('#sloe-video-info').on('sloeUpdate', videojs.sloelib.updateLink);
+
+            $('#sloe-link-reset-button').click(function() {
+                $('#sloe-link-url').val(videojs.options.sloestatic.url);
+                $('#sloe-video-info').trigger('sloeUpdate');
+            });
+            $('#sloe-link-size').click(function() {
+                $('#sloe-video-info').trigger('sloeUpdate');
+            });
             $('#sloe-link-test-button').click(function() {
-                $('#sloe-link-form').submit();
+                var url = $('#sloe-link-url').val();
+                window.open(url, '_blank');
+            });
+            $('#sloe-link-url').on("focus", function() {
+                this.select();
             });
         }
 
@@ -377,10 +397,13 @@ function sloenudge(options) {
         });
     });
 
-    $('document').ready(function() {
-        $('#sloe-video-info').on('sloeUpdate', videojs.sloelib.update_link);
-        $('#sloe-video-info').trigger('sloeUpdate');
-    })
 };
 
 videojs.plugin('sloenudge', sloenudge);
+
+$('document').ready(function() {
+
+    videojs.sloelib.attachHandlers();
+
+    $('#sloe-video-info').trigger('sloeUpdate');
+})
