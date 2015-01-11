@@ -111,12 +111,37 @@ videojs.sloelib = (function() {
             return el.childNodes.length === 0 ? "" : el.childNodes[0].nodeValue;
         },
 
+        updateInfo: function() {
+            var player = videojs('sloe-video-main');
+            var current_time = player.currentTime();
+            var markers = player.markers;
+            var marker_table = '<tr>';
+            var sep = '';
+            ['Marker', 'Type', 'Time(s)', 'Delta from current(s)'].forEach(function(name) {
+                marker_table += '<th>' + name + sep + '</th>';
+            });
+            marker_table += '</tr>/n';
+
+            var length = markers.getNumberOf();
+            for (i = 0; i < length; i++) {
+                var marker = markers.get(i);
+                var time_diff = marker.time - current_time;
+                marker_table += (
+                    '<tr><td>' + (i+1) + sep +
+                    '</td><td>' + marker.type + sep +
+                    '</td><td>' + (marker.time * marker.sloedata.speed_factor).toFixed(3) + sep +
+                    '</td><td>' + (time_diff * marker.sloedata.speed_factor).toFixed(3) + sep +
+                    '</td></tr>/n');
+            }
+            $('#sloe-marker-table').html(marker_table);
+        },
+
         encodeMarkers: function(markers) {
             var nodes = [];
             var counts = {};
             var length = markers.getNumberOf();
             for (i = 0; i < length; i++) {
-                marker = markers.get(i);
+                var marker = markers.get(i);
                 var tag = marker.type[0];
                 counts[tag] = (counts[tag] || 0) + 1;
 
@@ -148,9 +173,13 @@ videojs.sloelib = (function() {
             $('#sloe-link-url').val(content);
         },
 
+        sloeUpdateHandler: function() {
+            videojs.sloelib.updateLink();
+            videojs.sloelib.updateInfo();
+        },
 
         attachHandlers: function() {
-            $('#sloe-video-info').on('sloeUpdate', videojs.sloelib.updateLink);
+            $('#sloe-video-info').on('sloeUpdate', videojs.sloelib.sloeUpdateHandler);
 
             $('#sloe-link-reset-button').click(function() {
                 $('#sloe-link-url').val(videojs.options.sloestatic.url);
@@ -173,8 +202,10 @@ videojs.sloelib = (function() {
 
         newTime: function() {
             if ($('#sloe-link-start').prop("checked")) {
-                $('#sloe-video-info').trigger('sloeUpdate');
+                videojs.sloelib.updateLink();
             }
+
+            videojs.sloelib.updateInfo();
         }
 
     };
