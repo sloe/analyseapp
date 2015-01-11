@@ -73,8 +73,17 @@ function treeselector_tree_onchange(){
 
 def oar_link_form():
     script = ""
-    form = FORM(
-        INPUT(_type="checkbox", _id="sloe-link-size", _name='s', _value='1', value=True, _onchange='$("#sloe-video-info").trigger("sloeUpdate")'),
-        XML('Size')
-        );
+    inputs = []
+    link_options = (
+        ('start', 'Initial position', 0),
+        ('markers', 'Markers', 1),
+        ('size', 'Size', 0)
+    )
+    for id_suffix, text, checked in link_options:
+        elem_id = "sloe-link-" + id_suffix
+
+        inputs.append(INPUT(_type="checkbox", _id=elem_id, _name='s', _value='1', value=checked))
+        inputs.append(LABEL(text, _for=elem_id, _style="display:inline; margin-right: 8px;"))
+
+    form = FORM(*inputs);
     return form, script

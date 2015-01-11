@@ -4,7 +4,7 @@ videojs.sloelib = (function() {
     var sloelib = {
         fromFraction: function(frac_str) {
             var elems = String(frac_str).split('/');
-            if (elems.length == 1) {
+            if (elems.length === 1) {
                 return elems[0];
             } else {
                 return elems[0] / elems[1];
@@ -35,11 +35,11 @@ videojs.sloelib = (function() {
             var divisor = 1;
             var next_marker = marker.sloe_markers.getNext(marker, marker.type);
             var is_last_marker = !next_marker;
-            var other_type = (marker.type == 'CATCH' ? 'EXTR.' : 'CATCH');
+            var other_type = (marker.type === 'CATCH' ? 'EXTR.' : 'CATCH');
             var next_other_marker = marker.sloe_markers.getNext(marker, other_type);
 
             if (next_marker && next_other_marker && next_other_marker.time > next_marker.time) {
-                // The 'other' marker should appear before the next mark of some time, so if it isn't, ignore it
+                // The 'other' marker should appear before the next mark of same type, so if it isn't, ignore it
                 next_other_marker = false;
             }
             if (is_last_marker) {
@@ -53,10 +53,10 @@ videojs.sloelib = (function() {
                 var interval = (next_marker.time - marker.time) * speed_factor / divisor;
                 var frame_interval = (next_marker.sloe_frame - marker.sloe_frame) / divisor;
                 content = header + interval.toFixed(2) + 's<br/>=> Rate ' + (60 / interval).toFixed(2) + '<br/>'
-                if (!is_last_marker && next_other_marker && divisor == 1) {
+                if (!is_last_marker && next_other_marker && divisor === 1) {
                     var to_other_interval = (next_other_marker.time - marker.time) * speed_factor;
                     var other_to_next_interval = (next_marker.time - next_other_marker.time) * speed_factor;
-                    if (marker.type == 'CATCH') {
+                    if (marker.type === 'CATCH') {
                         drive_interval = to_other_interval;
                         recovery_interval = other_to_next_interval;
                     } else {
@@ -111,21 +111,43 @@ videojs.sloelib = (function() {
             return el.childNodes.length === 0 ? "" : el.childNodes[0].nodeValue;
         },
 
+        encodeMarkers: function(markers) {
+            var nodes = [];
+            var counts = {};
+            var length = markers.getNumberOf();
+            for (i = 0; i < length; i++) {
+                marker = markers.get(i);
+                var tag = marker.type[0];
+                counts[tag] = (counts[tag] || 0) + 1;
+
+                nodes.push(tag + counts[tag] + '=' + (marker.time * marker.sloedata.speed_factor).toFixed(3));
+            }
+
+            return nodes;
+        },
+
         updateLink: function() {
             var root_url = videojs.options.sloestatic.url;
             var content = root_url;
             var params = [];
+            var player = videojs('sloe-video-main');
+            if ($('#sloe-link-markers').prop("checked")) {
+                params = params.concat(videojs.sloelib.encodeMarkers(player.markers));
+            }
             if ($('#sloe-link-size').prop("checked")) {
                 params.push('size=' + videojs.options.sloestatic.size);
             }
+            if ($('#sloe-link-start').prop("checked")) {
+                params.push('start=' + (player.currentTime() * player.sloedata.speed_factor).toFixed(3));
+            }
+
             if (params.length > 0) {
                 content += '?';
             }
-            params.forEach(function(param) {
-                content += param;
-            })
+            content += params.join('&');
             $('#sloe-link-url').val(content);
         },
+
 
         attachHandlers: function() {
             $('#sloe-video-info').on('sloeUpdate', videojs.sloelib.updateLink);
@@ -134,9 +156,12 @@ videojs.sloelib = (function() {
                 $('#sloe-link-url').val(videojs.options.sloestatic.url);
                 $('#sloe-video-info').trigger('sloeUpdate');
             });
-            $('#sloe-link-size').click(function() {
-                $('#sloe-video-info').trigger('sloeUpdate');
+            ['markers', 'size', 'start'].forEach(function(name) {
+                $('#sloe-link-' + name).click(function() {
+                    $('#sloe-video-info').trigger('sloeUpdate');
+                });
             });
+
             $('#sloe-link-test-button').click(function() {
                 var url = $('#sloe-link-url').val();
                 window.open(url, '_blank');
@@ -144,6 +169,12 @@ videojs.sloelib = (function() {
             $('#sloe-link-url').on("focus", function() {
                 this.select();
             });
+        },
+
+        newTime: function() {
+            if ($('#sloe-link-start').prop("checked")) {
+                $('#sloe-video-info').trigger('sloeUpdate');
+            }
         }
 
     };
@@ -178,6 +209,7 @@ function sloe(options) {
             this.width(60, true);
             this.on(player, 'timeupdate', this.onTimeUpdate);
             this.on(player, 'pause', this.onPause);
+            this.on(player, 'seeked', this.onSeeked);
         },
     });
 
@@ -193,6 +225,11 @@ function sloe(options) {
 
     videojs.SloeFrameNumberButton.prototype.onPause = function() {
         videojs.sloelib.syncToFrame(player, player.sloedata.fps);
+        videojs.sloelib.newTime();
+    }
+
+    videojs.SloeFrameNumberButton.prototype.onSeeked = function() {
+        videojs.sloelib.newTime();
     }
 
     videojs.SloeMarkButton = videojs.Button.extend({
@@ -211,7 +248,7 @@ function sloe(options) {
     videojs.SloeMarkButton.prototype.onClick = function() {
         if (this.is_mark) {
             var current_frame = videojs.sloelib.getFrame(player, player.sloedata.fps);
-            var colour = (this.mark_type == 'CATCH') ? 'red' : 'lightgreen';
+            var colour = (this.mark_type === 'CATCH') ? 'red' : 'lightgreen';
             this.markers.setMarkerStyle({
                 'width':'7px',
                 'border-radius': '0%',
@@ -235,6 +272,7 @@ function sloe(options) {
         } else {
             this.setMark(true);
         }
+        $('#sloe-video-info').trigger('sloeUpdate');
     }
 
     videojs.SloeMarkButton.prototype.setMark = function(is_mark) {
@@ -347,6 +385,7 @@ function sloenudge(options) {
             videojs.sloelib.frameStep(player, player.sloenudgedata.fps, this.time_step * player.sloenudgedata.fps / player.sloenudgedata.speed_factor)
         }
         this.last_step_time = Date.now();
+        videojs.sloelib.newTime(player);
     }
 
     videojs.SloeNudgeButton.prototype.onMouseDown = function() {

@@ -232,12 +232,12 @@
             }
          },
          getNumberOf : function(type) {
-            if (type == '') {
+            if (!type) {
                return markersList.length;
             }
             var num = 0;
             for (var i = 0; i < markersList.length; i++) {
-               if (markersList[i].type == type) {
+               if (markersList[i].type === type) {
                   num += 1;
                }
             }
@@ -245,14 +245,14 @@
          },
          getFirst : function(type) {
             // get first marker
-            if (markersList.length == 0) {
+            if (markersList.length === 0) {
                return false;
             }
-            if (type == '') {
+            if (!type) {
                return markersList[0];
             }
             for (var i = 0; i < markersList.length; i++) {
-               if (markersList[i].type == type) {
+               if (markersList[i].type === type) {
                   return markersList[i];
                }
             }
@@ -261,7 +261,7 @@
          getNext : function(marker, type) {
             // get next marker after this one
             for (var i = 0; i < markersList.length; i++) {
-               if (type == '' || markersList[i].type == type) {
+               if (!type || markersList[i].type === type) {
                   if (markersList[i].time > marker.time) {
                      return markersList[i];
                   }
@@ -271,14 +271,14 @@
          },
          getNearest : function(time, type) {
             // get nearest marker to the time given
-            if (markersList.length == 0) {
+            if (markersList.length === 0) {
                return -1;
             }
             var found_distance = Number.MAX_VALUE;
             var found_index = -1;
             for (var i = 0; i < markersList.length; i++) {
                var this_distance = Math.abs(markersList[i].time - time);
-               if (type == '' || markersList[i].type == type) {
+               if (!type || markersList[i].type === type) {
                   if (this_distance < found_distance) {
                      found_index = i;
                      found_distance = this_distance;

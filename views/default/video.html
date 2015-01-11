@@ -21,15 +21,15 @@
   </script>
 {{=size_form}}
 {{=size_script}}
-<video id="example_video_1" class="video-js vjs-default-skin" controls preload="auto" width="{{=width}}" height="{{=height}}"
+<video id="sloe-video-main" class="video-js vjs-default-skin" controls preload="auto" width="{{=width}}" height="{{=height}}"
     data-setup='{ "playbackRates": [0.015625, 0.03125, 0.0625, 0.125, 0.25, 0.5, 1, 2, 4] }'>
-  <!-- <source src="https://googledrive.com/host/0B64A2SOOXw1pTmpKenZYd3FoR1U" type='video/mp4' /> -->
-  <source src="{{=URL('static', 'oarstack/final/derived/hoc2014/div4/403 Peterhouse M2 Beach Ball 3rd Mays 8+ yt8.mp4')}}" type='video/mp4' />
+  <source src="https://googledrive.com/host/0B64A2SOOXw1pTmpKenZYd3FoR1U" type='video/mp4' />
+  <!-- <source src="{{=URL('static', 'oarstack/final/derived/hoc2014/div4/403 Peterhouse M2 Beach Ball 3rd Mays 8+ yt8.mp4')}}" type='video/mp4' /> -->
 
   <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
 </video>
 <script type='text/javascript'>
-    var video = videojs("example_video_1", {
+    var video = videojs("sloe-video-main", {
       controls: true,
       autoplay: true,
       preload: 'auto',
