@@ -115,25 +115,26 @@ videojs.sloelib = (function() {
             var player = videojs('sloe-video-main');
             var current_time = player.currentTime();
             var markers = player.markers;
-            var marker_table = '<tr>';
-            var sep = '';
-            ['Marker', 'Type', 'Time(s)', 'Delta from current(s)'].forEach(function(name) {
-                marker_table += '<th>' + name + sep + '</th>';
-            });
-            marker_table += '</tr>/n';
+
+            var collect = videojs.sloelib.marker_collection;
+            if (!collect) {
+                return; // Not initialsied yet
+            }
+            collect.reset();
 
             var length = markers.getNumberOf();
             for (i = 0; i < length; i++) {
                 var marker = markers.get(i);
                 var time_diff = marker.time - current_time;
-                marker_table += (
-                    '<tr><td>' + (i+1) + sep +
-                    '</td><td>' + marker.type + sep +
-                    '</td><td>' + (marker.time * marker.sloedata.speed_factor).toFixed(3) + sep +
-                    '</td><td>' + (time_diff * marker.sloedata.speed_factor).toFixed(3) + sep +
-                    '</td></tr>/n');
+                collect.add({
+                    id: i+1,
+                    type: marker.type,
+                    time: marker.time * marker.sloedata.speed_factor,
+                    dcurrent: time_diff * marker.sloedata.speed_factor
+                });
             }
-            $('#sloe-marker-table').html(marker_table);
+
+            $('#sloe-marker-table').append(videojs.sloelib.marker_grid.render().el);
         },
 
         encodeMarkers: function(markers) {
@@ -206,8 +207,51 @@ videojs.sloelib = (function() {
             }
 
             videojs.sloelib.updateInfo();
-        }
+        },
 
+        initModels: function() {
+            videojs.sloelib.Marker = Backbone.Model.extend({});
+
+            videojs.sloelib.Markers = Backbone.Collection.extend({
+                model: videojs.sloelib.Marker,
+                url: "test.json"
+            });
+
+            videojs.sloelib.marker_collection = new videojs.sloelib.Markers();
+        },
+
+        initGrids: function() {
+            var columns = [{
+                name: "id",
+                label: "ID",
+                editable: false,
+                cell: "string"
+            }, {
+                name: "type",
+                label: "Type",
+                editable: true,
+                cell: "string"
+            }, {
+                name: "time",
+                label: "Time",
+                editable: true,
+                cell: Backgrid.NumberCell.extend({
+                    decimals: 3
+                })
+            }, {
+                name: "dcurrent",
+                label: "Delta to current",
+                editable: false,
+                cell: Backgrid.NumberCell.extend({
+                    decimals: 3
+                })
+            }];
+
+            videojs.sloelib.marker_grid = new Backgrid.Grid({
+                columns: columns,
+                collection: videojs.sloelib.marker_collection
+            });
+        }
     };
 
     return sloelib;
@@ -472,8 +516,9 @@ function sloenudge(options) {
 videojs.plugin('sloenudge', sloenudge);
 
 $('document').ready(function() {
-
+    videojs.sloelib.initModels();
+    videojs.sloelib.initGrids();
     videojs.sloelib.attachHandlers();
 
-    $('#sloe-video-info').trigger('sloeUpdate');
+    // $('#sloe-video-info').trigger('sloeUpdate');
 })
