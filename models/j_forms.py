@@ -75,7 +75,7 @@ def oar_link_form():
     script = ""
     inputs = []
     link_options = (
-        ('start', 'Initial position', 0),
+        ('start', 'Current position', 0),
         ('markers', 'Markers', 1),
         ('size', 'Size', 0)
     )
