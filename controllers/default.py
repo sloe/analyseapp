@@ -13,7 +13,7 @@ def index():
 def error():
     return dict()
 
-def video():
+def videoelement():
     size_errors = []
 
     # For sizes, URL vars override the session but don't overwrite it
@@ -62,6 +62,12 @@ def video():
                 width=width)
 
 
+def video():
+    elements = videoelement()
+    elements.update(select())
+    return elements
+
+
 def select():
     select_errors = []
 
@@ -78,9 +84,18 @@ def select():
     if select_errors:
         response.flash += ". ".join([str(x) for x in select_errors])
 
+    gdrive_found = None
+    if session.current_selection:
+        tree = sloelib_get_tree();
+        remote_item = sloelib.SloeTreeNode.get_object_by_uuid(session.current_selection)
+        if remote_item:
+            find_str = remote_item._subtree+'/'+remote_item.leafname
+            gdrive_found = sloelib_gdrive_find(find_str)
+
     return dict(
         selector_form=selector_form,
-        selector_script=selector_script
+        selector_script=selector_script,
+        gdrive_found=gdrive_found
     )
 
 
