@@ -29,8 +29,8 @@
 {{=selector_form}}
 {{=selector_script}}
 
-{{ if len(gdrive_found) == 0: }}
-Vide not found for this item
+{{ if not gdrive_found or len(gdrive_found) == 0: }}
+Video not found for this item
 {{ else: }}
 <video id="sloe-video-main" class="video-js vjs-default-skin" controls preload="auto" width="{{=width}}" height="{{=height}}"
     data-setup='{ "playbackRates": [0.0625, 0.125, 0.25, 0.5, 1, 2, 4] }'>
@@ -46,8 +46,8 @@ Vide not found for this item
       preload: 'auto',
       plugins: {
         sloenudge: {
-          fps: 29.97,
-          speed_factor: '1/8',
+          fps: {{=fps}},
+          speed_factor: {{=speed_factor}},
           steps: [
             '-1.75s',
             '-0.5s',
@@ -63,8 +63,8 @@ Vide not found for this item
         },
 
         sloe: {
-          fps: 29.97,
-          speed_factor: '1/8'
+          fps: {{=fps}},
+          speed_factor: {{=speed_factor}},
         }
       }
     });
@@ -84,4 +84,19 @@ _id="sloe-=link-control")
 
 {{ pass }}
 
+{{if final_item:}}
+<h3>This item:</h3>
+{{=DIV(BEAUTIFY(final_item._d))}}
+{{pass}}
+{{if gdrive_found:}}
+<h3>Google Drive item details:</h3>
 {{=DIV(BEAUTIFY(gdrive_found))}}
+{{pass}}
+{{if genspec:}}
+<h3>Generation details:</h3>
+{{=DIV(BEAUTIFY(genspec._d))}}
+{{pass}}
+{{if source_item:}}
+<h3>Source item (primary):</h3>
+{{=DIV(BEAUTIFY(source_item._d))}}
+{{pass}}

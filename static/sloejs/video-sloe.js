@@ -96,7 +96,7 @@ videojs.sloelib = (function() {
         },
 
         frameNumberButtonEl: function(frame) {
-            var rounded_frame = frame.toFixed(3);
+            var rounded_frame = frame.toFixed(1);
             return '<div class="vjs-control-content" style="font-size: 11px; line-height: 28px;"><span class="vjs-sloe-frame-number">f=' + rounded_frame + '</span></div>';
         },
 
