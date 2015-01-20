@@ -84,9 +84,13 @@ def select():
     if select_errors:
         response.flash += ". ".join([str(x) for x in select_errors])
 
-    gdrive_found = None
+    final_item = None
     fps = "29.97"
+    gdrive_found = None
+    genspec = None
+    source_item = None
     speed_factor = "1"
+
 
     if session.current_selection:
         tree = sloelib_get_tree();
@@ -103,10 +107,10 @@ def select():
                 speed_factor = genspec.get('speed_factor', speed_factor)
 
     return dict(
+        final_item=final_item,
         fps=fps,
         gdrive_found=gdrive_found,
         genspec=genspec,
-        final_item=final_item,
         selector_form=selector_form,
         selector_script=selector_script,
         source_item=source_item,
