@@ -23,6 +23,7 @@ def sloelib_get_tree():
         return (tree, sloelib.SloeTreeNode.UUID_LIB)
 
     tree_c, uuid_lib_c = cache.disk('sloelib_tree', reload_tree, time_expire=360)
+    sloelib.SloeTree.instance = tree_c
     sloelib.SloeTreeNode.UUID_LIB = uuid_lib_c
 
     return tree_c

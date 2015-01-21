@@ -88,6 +88,7 @@ def select():
     fps = "29.97"
     gdrive_found = None
     genspec = None
+    remoteitems = []
     source_item = None
     speed_factor = "1"
 
@@ -106,11 +107,15 @@ def select():
                 fps = genspec.get('output_frame_rate', fps)
                 speed_factor = genspec.get('speed_factor', speed_factor)
 
+            remoteitems = sloelib.SloeTreeUtil.find_remoteitems_for_item(final_item.uuid)
+            pass
+
     return dict(
         final_item=final_item,
         fps=fps,
         gdrive_found=gdrive_found,
         genspec=genspec,
+        remoteitems=remoteitems,
         selector_form=selector_form,
         selector_script=selector_script,
         source_item=source_item,

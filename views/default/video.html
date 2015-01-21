@@ -100,3 +100,9 @@ _id="sloe-=link-control")
 <h3>Source item (primary):</h3>
 {{=DIV(BEAUTIFY(source_item._d))}}
 {{pass}}
+{{if remoteitems:}}
+<h3>Remote items:</h3>
+{{for remoteitem in remoteitems:}}
+{{=DIV(BEAUTIFY(remoteitem._d))}}
+{{pass}}
+{{pass}}
