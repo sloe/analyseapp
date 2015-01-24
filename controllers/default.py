@@ -84,42 +84,24 @@ def select():
     if select_errors:
         response.flash += ". ".join([str(x) for x in select_errors])
 
-    final_item = None
-    fps = "29.97"
-    gdrive_found = None
-    genspec = None
-    remoteitems = []
-    source_item = None
-    speed_factor = "1"
 
 
     if session.current_selection:
-        tree = sloelib_get_tree();
-        final_item = sloelib.SloeTreeNode.get_object_by_uuid(session.current_selection)
-        if final_item:
-            find_str = final_item._subtree+'/'+final_item.leafname
-            gdrive_found = sloelib_gdrive_find(find_str)
+        fii = sloelib_get_final_item_info(session.current_selection)
+    else:
+        fii = Storage()
 
-            common_ids = sloelib.SloeUtil.extract_common_id(final_item.get('common_id', ''))
-            genspec = sloelib.SloeTreeNode.get_object_by_uuid(common_ids.get('G'))
-            source_item = sloelib.SloeTreeNode.get_object_by_uuid(common_ids.get('I'))
-            if genspec:
-                fps = genspec.get('output_frame_rate', fps)
-                speed_factor = genspec.get('speed_factor', speed_factor)
-
-            remoteitems = sloelib.SloeTreeUtil.find_remoteitems_for_item(final_item.uuid)
-            pass
+    # vi is video information, for videos without a final item
+    vi = Storage(
+       fps = fii.fps or '29.97',
+       speed_factor = fii.speed_factor or '1'
+    )
 
     return dict(
-        final_item=final_item,
-        fps=fps,
-        gdrive_found=gdrive_found,
-        genspec=genspec,
-        remoteitems=remoteitems,
+        fii=fii,
         selector_form=selector_form,
         selector_script=selector_script,
-        source_item=source_item,
-        speed_factor=speed_factor
+        vi=vi
     )
 
 

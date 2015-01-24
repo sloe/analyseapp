@@ -61,3 +61,44 @@ def sloelib_get_tree_selector(params):
             raise
 
     return selector, selector_by_uuid
+
+
+def sloelib_get_final_item_info(final_item_uuid):
+
+    def _reload_item(_final_item_uuid):
+        tree = sloelib_get_tree();
+        final_item = sloelib.SloeTreeNode.get_object_by_uuid(_final_item_uuid)
+        if final_item:
+            find_str = final_item._subtree+'/'+final_item.leafname
+            gdrive_objects = sloelib_gdrive_find(find_str)
+
+            common_ids = sloelib.SloeUtil.extract_common_id(final_item.get('common_id', ''))
+            genspec = sloelib.SloeTreeNode.get_object_by_uuid(common_ids.get('G'))
+            source_item = sloelib.SloeTreeNode.get_object_by_uuid(common_ids.get('I'))
+            if genspec:
+                fps = genspec.get('output_frame_rate', None)
+                speed_factor = genspec.get('speed_factor', None)
+
+            remote_items = sloelib.SloeTreeUtil.find_remoteitems_for_final_item(final_item.uuid)
+
+            related_remote_items = sloelib.SloeTreeUtil.find_remoteitems_for_source_item(source_item.uuid)
+
+        return Storage(
+            common_ids=common_ids,
+            final_item=final_item,
+            fps=fps,
+            gdrive_objects=gdrive_objects,
+            genspec=genspec,
+            related_remote_items=related_remote_items,
+            remote_items=remote_items,
+            source_item=source_item,
+            speed_factor=speed_factor
+        )
+
+    cache_id = "final_item_%s" % final_item_uuid
+    final_item_info = cache.disk(cache_id, lambda: _reload_item(final_item_uuid), time_expire=30)
+    if not final_item_info.gdrive_objects:
+        # Regenerate info if there are no gdrive items
+        final_item_info = cache.disk(cache_id, _reload_item, time_expire=0)
+
+    return final_item_info

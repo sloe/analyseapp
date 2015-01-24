@@ -29,12 +29,12 @@
 {{=selector_form}}
 {{=selector_script}}
 
-{{ if not gdrive_found or len(gdrive_found) == 0: }}
+{{ if not fii.gdrive_objects or len(fii.gdrive_objects) == 0: }}
 Video not found for this item
 {{ else: }}
 <video id="sloe-video-main" class="video-js vjs-default-skin" controls preload="auto" width="{{=width}}" height="{{=height}}"
     data-setup='{ "playbackRates": [0.0625, 0.125, 0.25, 0.5, 1, 2, 4] }'>
-  <source src="https://googledrive.com/host/{{=gdrive_found[0]['id']}}" type='video/mp4' />
+  <source src="https://googledrive.com/host/{{=fii.gdrive_objects[0]['id']}}" type='video/mp4' />
   <!-- <source src="{{=URL('static', 'oarstack/final/derived/hoc2014/div4/403 Peterhouse M2 Beach Ball 3rd Mays 8+ yt8.mp4')}}" type='video/mp4' /> -->
 
   <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
@@ -46,8 +46,8 @@ Video not found for this item
       preload: 'auto',
       plugins: {
         sloenudge: {
-          fps: {{=fps}},
-          speed_factor: {{=speed_factor}},
+          fps: {{=vi.fps}},
+          speed_factor: {{=vi.speed_factor}},
           steps: [
             '-1.75s',
             '-0.5s',
@@ -63,8 +63,8 @@ Video not found for this item
         },
 
         sloe: {
-          fps: {{=fps}},
-          speed_factor: {{=speed_factor}},
+          fps: {{=vi.fps}},
+          speed_factor: {{=vi.speed_factor}},
         }
       }
     });
@@ -81,28 +81,75 @@ _id="sloe-=link-control")
 
 {{=DIV(TABLE([], _class='sloe-marker-table', _id='sloe-marker-table'), _class='sloe-video-info', _id='sloe-video-info')}}
 {{=DIV(XML('(This table can be pasted into a spreadsheet)'))}}
-
 {{ pass }}
 
-{{if final_item:}}
+{{if fii.gdrive_objects and len(fii.gdrive_objects) > 0: }}
+<h3>Google Drive links:</h3>
+{{for gdrive_object in fii.gdrive_objects:}}
+{{=DIV(A(
+  "Download",
+  _class="sloe-gdrive-webcontent-link",
+  _href=gdrive_object.webContentLink,
+  _target="blank"),
+" | ",
+A("Open",
+  _class="sloe-gdrive-alternate-link",
+  _href=gdrive_object.alternateLink,
+  _target="blank"),
+" ",
+SPAN(gdrive_object.title,
+_class="sloe-gdrive-webcontent-link")
+)
+}}
+{{pass}}
+{{pass}}
+
+{{if fii.related_remote_items:}}
+<h3>YouTube links:</h3>
+{{for remote_item in fii.related_remote_items:}}
+{{=DIV(A(remote_item.title, _class="sloe-youtube-link", _href=remote_item.remote_url, _target="blank"))}}
+<iframe id="ytplayer" type="text/html" width="640" height="390"
+  src="http://www.youtube.com/embed/{{=remote_item.remote_id}}?autoplay=0"
+  frameborder="0" allowfullscreen="true"/></iframe>
+{{pass}}
+{{pass}}
+
+
+{{if fii.final_item:}}
 <h3>This item:</h3>
-{{=DIV(BEAUTIFY(final_item._d))}}
+{{=DIV(BEAUTIFY(fii.final_item._d))}}
 {{pass}}
-{{if gdrive_found:}}
-<h3>Google Drive item details:</h3>
-{{=DIV(BEAUTIFY(gdrive_found))}}
+{{if fii.gdrive_objects:}}
+<h3>Google Drive file details:</h3>
+{{for gdrive_object in fii.gdrive_objects:}}
+{{=DIV(A("Google Drive API Explorer for %s" % gdrive_object.id,
+_class="sloe-drive-api-explorer",
+ _href="https://developers.google.com/apis-explorer/#s/drive/v2/drive.files.get?fileId=%s" % gdrive_object.id,
+ _target="blank"))}}
+{{=DIV(BEAUTIFY(fii.gdrive_objects))}}
 {{pass}}
-{{if genspec:}}
+{{pass}}
+{{if fii.genspec:}}
 <h3>Generation details:</h3>
-{{=DIV(BEAUTIFY(genspec._d))}}
+{{=DIV(BEAUTIFY(fii.genspec._d))}}
 {{pass}}
-{{if source_item:}}
+{{if fii.source_item:}}
 <h3>Source item (primary):</h3>
-{{=DIV(BEAUTIFY(source_item._d))}}
+{{=DIV(BEAUTIFY(fii.source_item._d))}}
 {{pass}}
-{{if remoteitems:}}
+{{if fii.remote_items:}}
 <h3>Remote items:</h3>
-{{for remoteitem in remoteitems:}}
-{{=DIV(BEAUTIFY(remoteitem._d))}}
+{{for remote_item in fii.remote_items:}}
+{{=DIV(BEAUTIFY(remote_item._d))}}
+{{pass}}
+{{pass}}
+{{if fii.related_remote_items:}}
+<h3>Related remote items:</h3>
+{{for remote_item in fii.related_remote_items:}}
+{{=DIV(A("YouTube API Explorer for %s" % remote_item.remote_id,
+_class="sloe-youtube-api-explorer",
+ _href="https://developers.google.com/apis-explorer/#s/youtube/v3/youtube.videos.list?id=%s&part=id,snippet,contentDetails,liveStreamingDetails,player,recordingDetails,statistics,status,topicDetails" % remote_item.remote_id,
+ _target="blank"))}}
+{{=DIV(BEAUTIFY(remote_item._d))}}
 {{pass}}
 {{pass}}
