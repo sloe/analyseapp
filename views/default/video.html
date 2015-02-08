@@ -108,7 +108,7 @@ _class="sloe-gdrive-webcontent-link")
 {{for remote_item in fii.related_remote_items:}}
 {{=DIV(A(remote_item.title, _class="sloe-youtube-link", _href=remote_item.remote_url, _target="blank"))}}
 <iframe id="ytplayer" type="text/html" width="640" height="390"
-  src="http://www.youtube.com/embed/{{=remote_item.remote_id}}?autoplay=0"
+  src="{{=request.is_https and "https" or "http"}}://www.youtube.com/embed/{{=remote_item.remote_id}}?autoplay=0"
   frameborder="0" allowfullscreen="true"/></iframe>
 {{pass}}
 {{pass}}
