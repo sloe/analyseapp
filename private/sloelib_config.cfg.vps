@@ -1,0 +1,10 @@
+[config]
+aeprojectdir =
+ffprobe =
+loglevel = DEBUG
+plugindirs =
+primacies = primary,final
+sandboxdir =
+treeroot= /var/www/sloe_web2py/applications/analyseapp/private/oarstack
+worths = precious,derived,junk
+gdriveauthtokensroot = /var/www/sloe_web2py/applications/analyseapp/private/authtokens
