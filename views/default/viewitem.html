@@ -1,0 +1,8 @@
+{{extend 'layout.html'}}
+
+{{if item:}}
+{{=H3("Item: ", item.type, " ", item.uuid)}}
+{{=BEAUTIFY(item)}}
+{{else:}}
+No item available
+{{pass}}

@@ -1,0 +1,40 @@
+
+{{if fii.final_item:}}
+<h3>This item:</h3>
+{{=DIV(BEAUTIFY(fii.final_item._d))}}
+{{pass}}
+{{if fii.gdrive_objects:}}
+<h3>Google Drive file details:</h3>
+{{for gdrive_object in fii.gdrive_objects:}}
+{{=DIV(A("Google Drive API Explorer for %s" % gdrive_object.id,
+_class="sloe-drive-api-explorer",
+ _href="https://developers.google.com/apis-explorer/#s/drive/v2/drive.files.get?fileId=%s" % gdrive_object.id,
+ _target="blank"))}}
+{{=DIV(BEAUTIFY(fii.gdrive_objects))}}
+{{pass}}
+{{pass}}
+{{if fii.genspec:}}
+<h3>Generation details:</h3>
+{{=DIV(BEAUTIFY(fii.genspec._d))}}
+{{pass}}
+{{if fii.source_item:}}
+<h3>Source item (primary):</h3>
+{{=DIV(BEAUTIFY(fii.source_item._d))}}
+{{pass}}
+{{if fii.remote_items:}}
+<h3>Remote items:</h3>
+{{for remote_item in fii.remote_items:}}
+{{=DIV(BEAUTIFY(remote_item._d))}}
+{{pass}}
+{{pass}}
+{{if fii.related_remote_items:}}
+<h3>Related remote items:</h3>
+{{for remote_item in fii.related_remote_items:}}
+{{=DIV(A("YouTube API Explorer for %s" % remote_item.remote_id,
+_class="sloe-youtube-api-explorer",
+ _href="https://developers.google.com/apis-explorer/#s/youtube/v3/youtube.videos.list?id=%s&part=id,snippet,contentDetails,liveStreamingDetails,player,recordingDetails,statistics,status,topicDetails" % remote_item.remote_id,
+ _target="blank"))}}
+{{=DIV(BEAUTIFY(remote_item._d))}}
+{{pass}}
+{{pass}}
+
