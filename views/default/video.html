@@ -1,7 +1,5 @@
 {{extend 'layout.html'}}
 
-<h1>Oarstack secret testing site</h1>
-
   <link href="{{=URL("static", "video-js/video-js.css")}}" rel="stylesheet" type="text/css">
   <link href="{{=URL("static", "video-js/videojs.markers.css")}}" rel="stylesheet" type="text/css">
   <link href="{{=URL("static", "jslib/backgrid-0.3.5.css")}}" rel="stylesheet" type="text/css">
@@ -15,11 +13,10 @@
   <script src="{{=URL("static", "jslib/backgrid-0.3.5.js")}}"></script>
   <script src="{{=URL("static", "sloejs/video-sloe.js")}}"></script>
 
-  <!-- Unless using the CDN hosted version, update the URL to the Flash SWF -->
   <script>
     videojs.options.flash.swf = "{{=URL("static", "video-js/video-js.swf")}}";
     videojs.options.sloestatic= {
-      url: "{{=URL("", scheme=True, host=True)}}",
+      url: "{{=URL(args=link_args, scheme=True, host=True)}}",
       linkform: "{{=str(link_form)}}",
       size: "{{="%dx%d" % (width, height)}}"
       };
@@ -32,10 +29,12 @@
 {{ if not fii.gdrive_objects or len(fii.gdrive_objects) == 0: }}
 Video not found for this item
 {{ else: }}
+{{if vi.size_str:}}
+{{=DIV("Player will download ", B(vi.size_str), " when played")}}
+{{pass}}
 <video id="sloe-video-main" class="video-js vjs-default-skin" controls preload="auto" width="{{=width}}" height="{{=height}}"
     data-setup='{ "playbackRates": [0.0625, 0.125, 0.25, 0.5, 1, 2, 4] }'>
   <source src="https://googledrive.com/host/{{=fii.gdrive_objects[0]['id']}}" type='video/mp4' />
-  <!-- <source src="{{=URL('static', 'oarstack/final/derived/hoc2014/div4/403 Peterhouse M2 Beach Ball 3rd Mays 8+ yt8.mp4')}}" type='video/mp4' /> -->
 
   <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
 </video>
@@ -71,7 +70,7 @@ Video not found for this item
   </script>
 
 {{=DIV(
-INPUT(_type="text", _id="sloe-link-url", _value=URL("", scheme=True, host=True), _style="width:600px;"),
+INPUT(_type="text", _id="sloe-link-url", _value=URL(args=link_args, scheme=True, host=True), _style="width:600px;"),
 INPUT(_type="button", _id="sloe-link-test-button", _value="Test"),
 INPUT(_type="button", _id="sloe-link-reset-button", _value="Reset"),
 _class="sloe-link-control",
@@ -114,42 +113,10 @@ _class="sloe-gdrive-webcontent-link")
 {{pass}}
 {{pass}}
 
-
-{{if fii.final_item:}}
-<h3>This item:</h3>
-{{=DIV(BEAUTIFY(fii.final_item._d))}}
-{{pass}}
-{{if fii.gdrive_objects:}}
-<h3>Google Drive file details:</h3>
-{{for gdrive_object in fii.gdrive_objects:}}
-{{=DIV(A("Google Drive API Explorer for %s" % gdrive_object.id,
-_class="sloe-drive-api-explorer",
- _href="https://developers.google.com/apis-explorer/#s/drive/v2/drive.files.get?fileId=%s" % gdrive_object.id,
- _target="blank"))}}
-{{=DIV(BEAUTIFY(fii.gdrive_objects))}}
-{{pass}}
-{{pass}}
-{{if fii.genspec:}}
-<h3>Generation details:</h3>
-{{=DIV(BEAUTIFY(fii.genspec._d))}}
-{{pass}}
-{{if fii.source_item:}}
-<h3>Source item (primary):</h3>
-{{=DIV(BEAUTIFY(fii.source_item._d))}}
-{{pass}}
-{{if fii.remote_items:}}
-<h3>Remote items:</h3>
-{{for remote_item in fii.remote_items:}}
-{{=DIV(BEAUTIFY(remote_item._d))}}
-{{pass}}
-{{pass}}
-{{if fii.related_remote_items:}}
-<h3>Related remote items:</h3>
-{{for remote_item in fii.related_remote_items:}}
-{{=DIV(A("YouTube API Explorer for %s" % remote_item.remote_id,
-_class="sloe-youtube-api-explorer",
- _href="https://developers.google.com/apis-explorer/#s/youtube/v3/youtube.videos.list?id=%s&part=id,snippet,contentDetails,liveStreamingDetails,player,recordingDetails,statistics,status,topicDetails" % remote_item.remote_id,
- _target="blank"))}}
-{{=DIV(BEAUTIFY(remote_item._d))}}
-{{pass}}
-{{pass}}
+{{=DIV(BUTTON("Show debug info"), _id="show-debug-info")}}
+<script type='text/javascript'>
+$('#show-debug-info').click(function() {
+  $('#show-debug-info').text("Loading...")
+  ajax("{{=URL("debuginfoframe.load", args=link_args, host=True, scheme=True)}}", [], "show-debug-info")
+})
+</script>

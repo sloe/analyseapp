@@ -1,3 +1,11 @@
 {{extend 'layout.html'}}
 
-<h1>Welcome to my new app</h1>
+{{=H2("Quick links")}}
+{{for subtree, items in tree_selector:}}
+{{=H3(subtree)}}
+<table>
+{{for item in items:}}
+{{=TR(TD(A(item.get("title"), _href=URL("video", args=[item.get("uuid")])), " ", B(item.get("size")), " ", item.get("spec")))}}
+{{pass}}
+</table>
+{{pass}}

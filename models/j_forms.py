@@ -53,14 +53,14 @@ $('document').ready(function(){
 function treeselector_tree_onchange(){
     var treeopts = document.getElementById("treeselector_tree");
     var tree_selected = treeopts.options[treeopts.selectedIndex].value;
-    ajax('treeselectoritems/'+tree_selected, [], 'treeselector_items');
+    ajax('%s/'+tree_selected, [], 'treeselector_items');
 };
 
-""")
+""" % URL('treeselectoritems'))
 
     subtree_names = [x[0] for x in tree_selector]
 
-    current_tree_options = [OPTION('Select', _value='')] + [OPTION(x['title'], _value=x['uuid']) for x in current_tree_items]
+    current_tree_options = [OPTION('Select', _value='')] + [OPTION(x['menutitle'], _value=x['uuid']) for x in current_tree_items]
 
     form = FORM(
         SELECT(*subtree_names, value=current_tree, _id='treeselector_tree', _name='treeselector_tree', _onchange='treeselector_tree_onchange();'),
@@ -75,7 +75,7 @@ def oar_link_form():
     script = ""
     inputs = []
     link_options = (
-        ('start', 'Current position', 0),
+        ('current', 'Current position', 0),
         ('markers', 'Markers', 1),
         ('size', 'Size', 0)
     )

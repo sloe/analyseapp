@@ -163,8 +163,8 @@ videojs.sloelib = (function() {
             if ($('#sloe-link-size').prop("checked")) {
                 params.push('size=' + videojs.options.sloestatic.size);
             }
-            if ($('#sloe-link-start').prop("checked")) {
-                params.push('start=' + (player.currentTime() * player.sloedata.speed_factor).toFixed(3));
+            if ($('#sloe-link-current').prop("checked")) {
+                params.push('current=' + (player.currentTime() * player.sloedata.speed_factor).toFixed(3));
             }
 
             if (params.length > 0) {
@@ -186,7 +186,7 @@ videojs.sloelib = (function() {
                 $('#sloe-link-url').val(videojs.options.sloestatic.url);
                 $('#sloe-video-info').trigger('sloeUpdate');
             });
-            ['markers', 'size', 'start'].forEach(function(name) {
+            ['markers', 'size', 'current'].forEach(function(name) {
                 $('#sloe-link-' + name).click(function() {
                     $('#sloe-video-info').trigger('sloeUpdate');
                 });
@@ -202,7 +202,7 @@ videojs.sloelib = (function() {
         },
 
         newTime: function() {
-            if ($('#sloe-link-start').prop("checked")) {
+            if ($('#sloe-link-current').prop("checked")) {
                 videojs.sloelib.updateLink();
             }
 

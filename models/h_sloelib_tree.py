@@ -30,7 +30,7 @@ def sloelib_get_tree():
 
 
 def sloelib_get_tree_selector(params):
-    tree = sloelib_get_tree();
+    tree = sloelib_get_tree()
 
     selector = []
     selector_by_uuid = {}
@@ -40,12 +40,29 @@ def sloelib_get_tree_selector(params):
         try:
             for item in items:
                 if sloelib.SloeTreeUtil.object_matches_selector(item, params):
-                    item_spec = ("%sx%s %.2fs %.1fMB" %
-                                 (item.video_width, item.video_height, float(item.video_duration), float(item.video_size) / 2**20))
+                    common_ids = sloelib.SloeUtil.extract_common_id(item.get('common_id', ''))
+                    genspec = sloelib.SloeTreeNode.get_object_by_uuid_or_none(common_ids.get('G'))
+                    item_mb_size = float(item.video_size) / 2**20
+                    item_size = "%.0fMB" % item_mb_size
+                    output_short_description = genspec.get("output_short_description", "")
+                    if genspec and genspec.get("output_description", None):
+                        item_spec = ("%s %.2fs" %
+                                     (genspec.output_description, float(item.video_duration)))
+                        if output_short_description:
+                            item_shortspec = "%s %s" % (output_short_description, item_size)
+                        else:
+                            item_shortspec = "%s" % item_size
+                    else:
+                        item_spec = ""
+                        item_shortspec = item_spec
 
-                    item_title = "%s (%s)" % (item.name, item_spec)
+                    item_title = item.name
+                    item_menutitle = "%s, %s" % (item.name, item_shortspec)
+
                     item_record = {
                         'uuid': item.uuid,
+                        'menutitle': item_menutitle,
+                        'size': item_size,
                         'spec': item_spec,
                         'title': item_title
                     }
@@ -54,13 +71,15 @@ def sloelib_get_tree_selector(params):
                     selector_by_uuid[item.uuid] = (album._subtree, this_selector, item_record)
 
             if this_selector:
-                selector.append((album._subtree, this_selector))
+                sorted_this_selector = sorted(this_selector, key=lambda x: x.get('menutitle'))
+                selector.append((album._subtree, sorted_this_selector))
 
         except Exception, e:
             logging.error('sloelib_get_tree_selector: %s' % str(e))
             raise
 
-    return selector, selector_by_uuid
+    sorted_selector = sorted(selector, key=lambda x: x[0])
+    return sorted_selector, selector_by_uuid
 
 
 def sloelib_get_final_item_info(final_item_uuid):
@@ -69,6 +88,9 @@ def sloelib_get_final_item_info(final_item_uuid):
         tree = sloelib_get_tree();
         final_item = sloelib.SloeTreeNode.get_object_by_uuid(_final_item_uuid)
         if final_item:
+            filesize = final_item.get('video_size', None)
+            if filesize:
+                filesize = int(filesize)
             find_str = final_item._subtree+'/'+final_item.leafname
             gdrive_objects = sloelib_gdrive_find(find_str)
 
@@ -85,6 +107,7 @@ def sloelib_get_final_item_info(final_item_uuid):
 
         return Storage(
             common_ids=common_ids,
+            filesize=filesize,
             final_item=final_item,
             fps=fps,
             gdrive_objects=gdrive_objects,
@@ -99,6 +122,20 @@ def sloelib_get_final_item_info(final_item_uuid):
     final_item_info = cache.disk(cache_id, lambda: _reload_item(final_item_uuid), time_expire=30)
     if not final_item_info.gdrive_objects:
         # Regenerate info if there are no gdrive items
-        final_item_info = cache.disk(cache_id, _reload_item, time_expire=0)
+        final_item_info = cache.disk(cache_id, lambda: _reload_item(final_item_uuid), time_expire=0)
 
     return final_item_info
+
+
+
+def sloelib_get_item(item_uuid):
+
+    def _reload_item(_item_uuid):
+        tree = sloelib_get_tree();
+        item = sloelib.SloeTreeNode.get_object_by_uuid_or_none(_item_uuid)
+        return item
+    cache_id = "item_%s" % item_uuid
+    item_info = cache.disk(cache_id, lambda: _reload_item(item_uuid), time_expire=30)
+    if not item_info:
+        item_info = cache.disk(cache_id, lambda: _reload_item(item_uuid), time_expire=0)
+    return item_info
