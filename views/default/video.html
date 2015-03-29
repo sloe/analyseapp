@@ -7,7 +7,6 @@
   <script src="{{=URL("static", "video-js/video.dev.js")}}"></script>
   <script src="{{=URL("static", "video-js/video-framebyframe.js")}}"></script>
   <script src="{{=URL("static", "video-js/videojs-markers.js")}}"></script>
-  <script src="{{=URL("static", "sloejs/video-sloe.js")}}"></script>
   <script src="{{=URL("static", "jslib/underscore-1.7.0.js")}}"></script>
   <script src="{{=URL("static", "jslib/backbone-1.1.2.js")}}"></script>
   <script src="{{=URL("static", "jslib/backgrid-0.3.5.js")}}"></script>
@@ -29,10 +28,15 @@
 {{ if not fii.gdrive_objects or len(fii.gdrive_objects) == 0: }}
 Video not found for this item
 {{ else: }}
-{{if vi.size_str:}}
-{{=DIV("Player will download ", B(vi.size_str), " when played")}}
+{{if vi.size_str:
+    size_message = ''
+    if browser.startswith('ie'):
+        size_message = ". Internet Explorer might download the entire file before showing anything"
+    pass
+}}
+{{=DIV(SPAN("Player will download ", B(vi.size_str), " when played"), SPAN(size_message, _id="sloe-progress"), '.')}}
 {{pass}}
-<video id="sloe-video-main" class="video-js vjs-default-skin" controls preload="auto" width="{{=width}}" height="{{=height}}"
+<video id="sloe-video-main" class="video-js vjs-default-skin" controls preload="none" width="{{=width}}" height="{{=height}}"
     data-setup='{ "playbackRates": [0.0625, 0.125, 0.25, 0.5, 1, 2, 4] }'>
   <source src="https://googledrive.com/host/{{=fii.gdrive_objects[0]['id']}}" type='video/mp4' />
 
@@ -44,8 +48,8 @@ Video not found for this item
     }
     var video = videojs("sloe-video-main", {
       controls: true,
-      autoplay: true,
-      preload: 'auto',
+      autoplay: false,
+      preload: 'none',
       plugins: {
         sloenudge: {
           fps: {{=vi.fps}},

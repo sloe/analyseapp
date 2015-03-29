@@ -91,6 +91,7 @@ def video():
     sloe_process_singlevid_request()
     elements = videoelement()
     elements.update(select())
+    elements['browser'] = request.user_agent().browser.name.lower()
     return elements
 
 
