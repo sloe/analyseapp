@@ -29,7 +29,7 @@
 Video not found for this item
 {{ else: }}
 {{if vi.size_str:
-    size_message = ''
+    size_message = ' (waiting for play)'
     if browser.startswith('ie'):
         size_message = ". Internet Explorer might download the entire file before showing anything"
     pass

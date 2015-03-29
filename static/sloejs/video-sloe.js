@@ -204,9 +204,7 @@ videojs.sloelib = (function() {
         playerProgressHandler: function() {
             var player = videojs('sloe-video-main');
             var loaded_percent = 100 * player.bufferedPercent();
-            if (loaded_percent == 0) {
-                $('#sloe-progress').html(" (waiting for play)");
-            } else if (loaded_percent == 100) {
+            if (loaded_percent == 100) {
                 $('#sloe-progress').html(" (done)");
             } else {
                 $('#sloe-progress').html(" (loaded " + loaded_percent.toFixed(0) + "%)");
