@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from pprint import pformat
 import re
 
 ### required - do no delete
@@ -39,7 +40,7 @@ def viewitem():
     return dict(item=Storage(item.as_dict()))
 
 
-def videoelement():
+def __videoelement():
     size_errors = []
 
     # For sizes, URL vars override the session but don't overwrite it
@@ -87,11 +88,30 @@ def videoelement():
                 width=width)
 
 
+def __get_markers():
+    # If there are markers in the request then ignore all markers in the session
+    markers = {}
+    marker_regexp_key = re.compile(r'(C|E)\d+$')
+    marker_regexp_value = re.compile(r'[-0-9.]+$')
+    for key, value in request.vars.iteritems():
+        if marker_regexp_key.match(key) and marker_regexp_value.match(value):
+            markers[key]=float(value)
+
+    if not markers and session.current_selection:
+        session_key = 'markers_%s' % session.current_selection
+        for key, value in session.get(session_key, {}).iteritems():
+            if marker_regexp_key.match(key) and marker_regexp_value.match(value):
+                markers[key]=float(value)
+
+    return markers
+
+
 def video():
     sloe_process_singlevid_request()
-    elements = videoelement()
+    elements = __videoelement()
     elements.update(select())
     elements['browser'] = request.user_agent().browser.name.lower()
+    elements['markers'] = __get_markers()
     return elements
 
 

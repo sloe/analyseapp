@@ -11,6 +11,11 @@ videojs.sloelib = (function() {
             }
         },
 
+        frameFromTime: function(time_seconds, fps) {
+            var nearest_frame = Math.round(time_seconds * fps);
+            return nearest_frame;
+        },
+
         getFrame: function(player, fps) {
             var current_time = player.currentTime();
             var nearest_frame = Math.round(current_time * fps);
@@ -30,13 +35,14 @@ videojs.sloelib = (function() {
         },
 
         markerTip: function(marker) {
+            var player = videojs('sloe-video-main');
             var speed_factor = marker.sloedata.speed_factor;
             var header = 'Time to next: ';
             var divisor = 1;
-            var next_marker = marker.sloe_markers.getNext(marker, marker.type);
+            var next_marker = player.markers.getNext(marker, marker.type);
             var is_last_marker = !next_marker;
             var other_type = (marker.type === 'CATCH' ? 'EXTR.' : 'CATCH');
-            var next_other_marker = marker.sloe_markers.getNext(marker, other_type);
+            var next_other_marker = player.markers.getNext(marker, other_type);
 
             if (next_marker && next_other_marker && next_other_marker.time > next_marker.time) {
                 // The 'other' marker should appear before the next mark of same type, so if it isn't, ignore it
@@ -45,8 +51,8 @@ videojs.sloelib = (function() {
             if (is_last_marker) {
                 // Last marker so show averages
                 next_marker = marker;
-                var marker = marker.sloe_markers.getFirst(marker.type);
-                divisor = marker.sloe_markers.getNumberOf(marker.type) - 1;
+                var marker = player.markers.getFirst(marker.type);
+                divisor = player.markers.getNumberOf(marker.type) - 1;
                 header = 'Average of ' + divisor + '<br/>';
             }
             if (divisor > 0) {
@@ -130,6 +136,7 @@ videojs.sloelib = (function() {
                     id: i+1,
                     type: marker.type,
                     time: marker.time * marker.sloedata.speed_factor,
+                    frame: marker.sloe_frame,
                     dcurrent: time_diff * marker.sloedata.speed_factor
                 });
             }
@@ -150,6 +157,32 @@ videojs.sloelib = (function() {
             }
 
             return nodes;
+        },
+
+        getMarkersFromMap: function(player, marker_map) {
+            markers = []
+            marker_map.forEach(function(marker_time, marker_key) {
+                if (marker_key.startsWith("C")) {
+                    mark_type = "CATCH";
+                    mark_class = "sloe-marker-catch";
+                } else if (marker_key.startsWith("E")) {
+                    mark_type = "EXTR.";
+                    mark_class = "sloe-marker-extr";
+                } else {
+                    mark_type = false;
+                }
+                if (mark_type) {
+                    var marker_frame = videojs.sloelib.frameFromTime(marker_time, player.sloedata.fps);
+                    markers.push({
+                        class: mark_class,
+                        sloedata: player.sloedata,
+                        sloe_frame: marker_frame,
+                        time: marker_time,
+                        type: mark_type
+                    });
+                }
+            })
+            return markers;
         },
 
         updateLink: function() {
@@ -254,6 +287,13 @@ videojs.sloelib = (function() {
                     decimals: 3
                 })
             }, {
+                name: "frame",
+                label: "Frame",
+                editable: true,
+                cell: Backgrid.NumberCell.extend({
+                    decimals: 0
+                })
+            }, {
                 name: "dcurrent",
                 label: "Delta to current",
                 editable: false,
@@ -338,16 +378,12 @@ function sloe(options) {
     videojs.SloeMarkButton.prototype.onClick = function() {
         if (this.is_mark) {
             var current_frame = videojs.sloelib.getFrame(player, player.sloedata.fps);
-            var colour = (this.mark_type === 'CATCH') ? 'red' : 'lightgreen';
-            this.markers.setMarkerStyle({
-                'width':'7px',
-                'border-radius': '0%',
-                'background-color': colour
-            });
+            var _class = (this.mark_type === 'CATCH') ? 'sloe-marker-catch' : 'sloe-marker-extr';
+
             this.markers.add([{
+                class: _class,
                 sloedata: player.sloedata,
                 sloe_frame: current_frame,
-                sloe_markers: this.markers,
                 time: player.currentTime(),
                 type: this.mark_type
             }]);
@@ -375,7 +411,7 @@ function sloe(options) {
         var is_mark = true;
         if (nearest_marker) {
             distance = Math.abs(player.currentTime() - nearest_marker.time);
-            if (distance < 1) {
+            if (distance < 0.5) {
                 is_mark = false;
             }
         }
@@ -408,6 +444,8 @@ function sloe(options) {
             })
         );
 
+        initial_markers = videojs.sloelib.getMarkersFromMap(player, videojs.options.sloestatic.markers)
+
         player.markers({
             breakOverlay:{
                display: false
@@ -416,9 +454,9 @@ function sloe(options) {
                 display: true,
                 text: videojs.sloelib.markerTip
             },
-            markers: [
-            ]
+            markers: initial_markers
         });
+        player.markers.setMarkerStyle({});
 
         player.controlBar.addChild(
             new videojs.SloeMarkButton(player, {
@@ -443,7 +481,9 @@ function sloe(options) {
                 markers: player.markers
             })
         );
-
+        player.on("loadedmetadata", function() {
+            $('#sloe-video-info').trigger('sloeUpdate');
+        });
     });
 };
 videojs.plugin('sloe', sloe);
@@ -537,6 +577,4 @@ $('document').ready(function() {
     videojs.sloelib.initModels();
     videojs.sloelib.initGrids();
     videojs.sloelib.attachHandlers();
-
-    // $('#sloe-video-info').trigger('sloeUpdate');
 })
