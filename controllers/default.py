@@ -2,6 +2,7 @@
 
 from pprint import pformat
 import re
+import types
 
 ### required - do no delete
 def user(): return dict(form=auth())
@@ -61,8 +62,8 @@ def __videoelement():
 
     size_form, size_script = oar_video_size_form((width, height))
 
-    if size_form.process(keepvalues=True, onsuccess=None).accepted:
-        match = re.match(r'(\d+)x(\d+)$', size_form.vars.f_size)
+    if size_form.process(formname='sizeform', keepvalues=True, onsuccess=None).accepted:
+        match = re.match(r'(\d+)x(\d+)$', size_form.vars.sizecombo)
         if not match:
             size_errors.append(T("Cannot decode size - must be in the form 123x456"))
         else:
@@ -94,7 +95,7 @@ def __get_markers():
     marker_regexp_key = re.compile(r'(C|E)\d+$')
     marker_regexp_value = re.compile(r'[-0-9.]+$')
     for key, value in request.vars.iteritems():
-        if marker_regexp_key.match(key) and marker_regexp_value.match(value):
+        if marker_regexp_key.match(str(key)) and isinstance(value, types.StringType) and marker_regexp_value.match(value):
             markers[key]=float(value)
 
     if not markers and session.current_selection:
@@ -112,6 +113,7 @@ def video():
     elements.update(select())
     elements['browser'] = request.user_agent().browser.name.lower()
     elements['markers'] = __get_markers()
+
     return elements
 
 
@@ -120,7 +122,7 @@ def select():
 
     selector_form, selector_script = oar_selector_form(session.current_selection)
 
-    if selector_form.process(keepvalues=True, onsuccess=None).accepted:
+    if selector_form.process(formname='treeselector_form', keepvalues=True, onsuccess=None).accepted:
         if sloe_verify_uuid(selector_form.vars.treeselector_items):
             redirect(URL(args=[selector_form.vars.treeselector_items]))
     elif selector_form.errors:
@@ -131,6 +133,8 @@ def select():
 
     if session.current_selection:
         fii = sloelib_get_final_item_info(session.current_selection)
+        if len(fii.remote_items) == 1:
+            response.title = fii.remote_items[0].title.replace(' [oarstack]', '')
         link_args=[session.current_selection]
     else:
         fii = Storage()

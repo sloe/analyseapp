@@ -26,14 +26,13 @@ $('document').ready(function(){
 });
 """)
 
-    form = SQLFORM.factory(
-        Field('f_size', default=size_default, label='Resolution', requires=IS_IN_SET(sizes_set, zero=None)),
-        formstyle='divs',
-        buttons=[]
-    )
+    form = FORM(
+        SELECT(*sizes_set, value=size_default, _id='sizecombo', _name='sizecombo'),
+        _id='sizeform',
+        _name='sizeform')
 
-    form.attributes['_id'] = 'sizeform'
-    form.element('select').attributes['_id'] = 'sizecombo'
+    #form.attributes['_id'] = 'sizeform'
+    #form.element('select').attributes['_id'] = 'sizecombo'
 
     return form, script
 
@@ -65,7 +64,8 @@ function treeselector_tree_onchange(){
     form = FORM(
         SELECT(*subtree_names, value=current_tree, _id='treeselector_tree', _name='treeselector_tree', _onchange='treeselector_tree_onchange();'),
         SELECT(*current_tree_options, value=current_item_record.get('uuid', None), _id='treeselector_items',  _name='treeselector_items'),
-        _id='treeselector_form'
+        _id='treeselector_form',
+        _name='treeselector_form'
     )
 
     return form, script

@@ -3,6 +3,7 @@
   <link href="{{=URL("static", "video-js/video-js.css")}}" rel="stylesheet" type="text/css">
   <link href="{{=URL("static", "video-js/videojs.markers.css")}}" rel="stylesheet" type="text/css">
   <link href="{{=URL("static", "jslib/backgrid-0.3.5.css")}}" rel="stylesheet" type="text/css">
+  <link href="{{=URL("static", "css/video-sloe.css")}}" rel="stylesheet" type="text/css">
   <!-- video.js must be in the <head> for older IEs to work. -->
   <script src="{{=URL("static", "video-js/video.dev.js")}}"></script>
   <script src="{{=URL("static", "video-js/video-framebyframe.js")}}"></script>
@@ -23,14 +24,15 @@ pass
     videojs.options.sloestatic = {
       url: "{{=URL(args=link_args, scheme=True, host=True)}}",
       linkform: "{{=str(link_form)}}",
-      markers: new Map([{{=XML(",".join(marker_text))}}]),
+      markers: [{{=XML(",".join(marker_text))}}],
       size: "{{="%dx%d" % (width, height)}}"
       };
 
   </script>
-{{=size_form}}
+
+{{=H4(response.title)}}
+{{=TABLE(TR(selector_form, size_form))}}
 {{=size_script}}
-{{=selector_form}}
 {{=selector_script}}
 
 {{ if not fii.gdrive_objects or len(fii.gdrive_objects) == 0: }}
@@ -44,8 +46,7 @@ Video not found for this item
 }}
 {{=DIV(SPAN("Player will download ", B(vi.size_str), " when played"), SPAN(size_message, _id="sloe-progress"), '.')}}
 {{pass}}
-<video id="sloe-video-main" class="video-js vjs-default-skin" controls preload="none" width="{{=width}}" height="{{=height}}"
-    data-setup='{ "playbackRates": [0.0625, 0.125, 0.25, 0.5, 1, 2, 4] }'>
+<video id="sloe-video-main" class="video-js vjs-default-skin" controls preload="none" width="{{=width}}" height="{{=height}}">
   <source src="https://googledrive.com/host/{{=fii.gdrive_objects[0]['id']}}" type='video/mp4' />
 
   <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
@@ -57,6 +58,12 @@ Video not found for this item
     var video = videojs("sloe-video-main", {
       controls: true,
       autoplay: false,
+      inactivityTimeout: 6000,
+{{if 'safari' in browser:}}
+      playbackRates: [-2, -1, -0.5, -0.25, -0.125, -0.0625, 0.0625, 0.125, 0.25, 0.5, 1, 2],
+{{else:}}
+      playbackRates: [0.0625, 0.125, 0.25, 0.5, 1, 2],
+{{pass}}
       preload: 'none',
       plugins: {
         sloenudge: {
@@ -83,7 +90,7 @@ Video not found for this item
       }
     });
   </script>
-
+{{=SPAN(_class='sloe-video-info', _id='sloe-video-info')}}
 {{=DIV(
 INPUT(_type="text", _id="sloe-link-url", _value=URL(args=link_args, scheme=True, host=True), _style="width:600px;"),
 INPUT(_type="button", _id="sloe-link-test-button", _value="Test"),
@@ -125,7 +132,7 @@ _class="sloe-gdrive-webcontent-link")
 {{=DIV(A(remote_item.title, _class="sloe-youtube-link", _href=remote_item.remote_url, _target="blank"))}}
 <iframe id="ytplayer" type="text/html" width="640" height="390"
   src="{{=request.is_https and "https" or "http"}}://www.youtube.com/embed/{{=remote_item.remote_id}}?autoplay=0"
-  frameborder="0" allowfullscreen="true"/></iframe>
+  frameborder="0" allowfullscreen="true"></iframe>
 {{pass}}
 {{pass}}
 

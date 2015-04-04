@@ -150,7 +150,7 @@ videojs.sloelib = (function() {
         },
 
         frameNumberButtonEl: function(frame) {
-            var rounded_frame = frame.toFixed(1);
+            var rounded_frame = frame.toFixed(0);
             return '<div class="vjs-control-content" style="font-size: 11px; line-height: 28px;"><span class="vjs-sloe-frame-number">f=' + rounded_frame + '</span></div>';
         },
 
@@ -269,13 +269,15 @@ videojs.sloelib = (function() {
             return nodes;
         },
 
-        getMarkersFromMap: function(player, marker_map) {
+        getMarkersFromList: function(player, marker_list) {
             markers = []
-            marker_map.forEach(function(marker_time, marker_key) {
-                if (marker_key.startsWith("C")) {
+            marker_list.forEach(function(marker_entry) {
+                var marker_key = marker_entry[0];
+                var marker_time = marker_entry[1];
+                if (marker_key[0] === "C") {
                     mark_type = "CATCH";
                     mark_class = "sloe-marker-catch";
-                } else if (marker_key.startsWith("E")) {
+                } else if (marker_key[0] === "E") {
                     mark_type = "EXTR.";
                     mark_class = "sloe-marker-extr";
                 } else {
@@ -547,11 +549,6 @@ function sloe(options) {
         },
     });
 
-    videojs.SloeFrameNumberButton.prototype.onClick = function() {
-        var time = player.currentTime();
-        this.el().innerHTML = time*30;
-    }
-
     videojs.SloeFrameNumberButton.prototype.onTimeUpdate = function() {
         var time = player.currentTime();
         this.el().innerHTML = videojs.sloelib.frameNumberButtonEl(time * player.sloedata.fps);
@@ -631,7 +628,7 @@ function sloe(options) {
     }
 
     player.ready(function() {
-        player.pause();
+        // player.pause();
         player.sloedata = {
             fps: videojs.sloelib.fromFraction(options.fps),
             speed_factor: videojs.sloelib.fromFraction(options.speed_factor)
@@ -648,7 +645,7 @@ function sloe(options) {
             })
         );
 
-        initial_markers = videojs.sloelib.getMarkersFromMap(player, videojs.options.sloestatic.markers)
+        initial_markers = videojs.sloelib.getMarkersFromList(player, videojs.options.sloestatic.markers)
 
         player.markers({
             breakOverlay:{
@@ -661,6 +658,7 @@ function sloe(options) {
             markers: initial_markers
         });
         player.markers.setMarkerStyle({});
+        player.markers.add(initial_markers);
 
         player.controlBar.addChild(
             new videojs.SloeMarkButton(player, {
@@ -781,4 +779,5 @@ $('document').ready(function() {
     videojs.sloelib.initModels();
     videojs.sloelib.initGrids();
     videojs.sloelib.attachHandlers();
+    $('#sloe-video-info').trigger('sloeUpdate');
 })

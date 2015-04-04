@@ -1,0 +1,12 @@
+
+.sloe-marker-catch {
+  width: 7px;
+  border-radius: 30%;
+  background-color: red;
+}
+
+.sloe-marker-extr {
+  width: 7px;
+  border-radius: 30%;
+  background-color: blue;
+}

@@ -105,7 +105,7 @@ The default control bar that is a container for most of the controls.
 /* Hide the control bar when the video is playing and the user is inactive  */
 .vjs-default-skin.vjs-has-started.vjs-user-inactive.vjs-playing .vjs-control-bar {
   display: block;
-  visibility: hidden;
+  /* visibility: hidden; */
   opacity: 0;
   /* transition */
   -webkit-transition: visibility 1s, opacity 1s;
