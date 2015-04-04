@@ -92,13 +92,14 @@ _class="sloe-link-control",
 _id="sloe-=link-control")
 }}
 {{=link_form}}
-
-{{=DIV(TABLE([], _class='sloe-marker-table', _id='sloe-marker-table'), _class='sloe-video-info', _id='sloe-video-info')}}
-{{=DIV(XML('(This table can be pasted into a spreadsheet)'))}}
+{{=H3('Marker information')}}
+{{=DIV(TABLE([], _class='sloe-marker-table', _id='sloe-marker-table'), _class='sloe-video-info', _id='sloe-video-info-markers')}}
+{{=H3('Marker statistics')}}
+{{=DIV(TABLE([], _class='sloe-aggregate-table', _id='sloe-aggregate-table'), _class='sloe-video-info', _id='sloe-video-info-aggregates')}}
 {{ pass }}
 
 {{if fii.gdrive_objects and len(fii.gdrive_objects) > 0: }}
-<h3>Google Drive links:</h3>
+<h3>Google Drive links</h3>
 {{for gdrive_object in fii.gdrive_objects:}}
 {{=DIV(A(
   "Download",
@@ -119,7 +120,7 @@ _class="sloe-gdrive-webcontent-link")
 {{pass}}
 
 {{if fii.related_remote_items:}}
-<h3>YouTube links:</h3>
+<h3>YouTube links</h3>
 {{for remote_item in fii.related_remote_items:}}
 {{=DIV(A(remote_item.title, _class="sloe-youtube-link", _href=remote_item.remote_url, _target="blank"))}}
 <iframe id="ytplayer" type="text/html" width="640" height="390"

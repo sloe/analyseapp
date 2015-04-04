@@ -34,6 +34,54 @@ videojs.sloelib = (function() {
             videojs.sloelib.goToFrame(player, fps, new_frame);
         },
 
+        getMarkerData: function(marker) {
+            var data = {};
+            var player = videojs('sloe-video-main');
+            var header = 'Time to next: ';
+            var speed_factor = marker.sloedata.speed_factor;
+            data.divisor = 1;
+            var next_marker = player.markers.getNext(marker, marker.type);
+            var is_last_marker = !next_marker;
+            var other_type = (marker.type === 'CATCH' ? 'EXTR.' : 'CATCH');
+            var next_other_marker = player.markers.getNext(marker, other_type);
+
+            if (next_marker && next_other_marker && next_other_marker.time > next_marker.time) {
+                // The 'other' marker should appear before the next mark of same type, so if it isn't, ignore it
+                next_other_marker = false;
+            }
+            if (!is_last_marker) {
+                data.interval = (next_marker.time - marker.time) * speed_factor / data.divisor;
+                data.rate = 60 / data.interval;
+                data.frame_interval = (next_marker.sloe_frame - marker.sloe_frame) / data.divisor;
+
+                content = header + data.interval.toFixed(2) + 's<br/>=> Rate ' + (data.rate).toFixed(2) + '<br/>';
+                if (!is_last_marker && next_other_marker && data.divisor === 1) {
+                    data.to_other_time = (next_other_marker.time - marker.time) * speed_factor;
+                    data.other_to_next_time = (next_marker.time - next_other_marker.time) * speed_factor;
+                    if (marker.type === 'CATCH') {
+                        data.drive_time = data.to_other_time;
+                        data.recovery_time = data.other_to_next_time;
+                    } else {
+                        data.drive_time = data.other_to_next_time;
+                        data.recovery_time = data.to_other_time;
+                    }
+                    if (data.drive_time > 0) {
+                        content += 'Drive: ' + data.drive_time.toFixed(2) + 's<br/>';
+                    }
+                    if (data.recovery_time > 0) {
+                        content += 'Recovery: ' + data.recovery_time.toFixed(2) + 's<br/>';
+                        if (data.drive_time > 0) {
+                            data.ratio = data.recovery_time / data.drive_time;
+                            content += 'Ratio: 1:' + data.ratio.toFixed(2) + '<br/>';
+                        }
+                    }
+                }
+
+                content += data.frame_interval.toFixed(2) + 'f';
+            }
+            return data;
+        },
+
         markerTip: function(marker) {
             var player = videojs('sloe-video-main');
             var speed_factor = marker.sloedata.speed_factor;
@@ -128,20 +176,82 @@ videojs.sloelib = (function() {
             }
             collect.reset();
 
+            var data_list = [];
+
             var length = markers.getNumberOf();
             for (i = 0; i < length; i++) {
                 var marker = markers.get(i);
+                var data = videojs.sloelib.getMarkerData(marker);
+                data_list.push(data);
                 var time_diff = marker.time - current_time;
+
                 collect.add({
                     id: i+1,
                     type: marker.type,
                     time: marker.time * marker.sloedata.speed_factor,
                     frame: marker.sloe_frame,
+                    interval: data.interval,
+                    rate: data.rate,
+                    drive_time: data.drive_time,
+                    recovery_time: data.recovery_time,
+                    ratio: data.ratio,
                     dcurrent: time_diff * marker.sloedata.speed_factor
                 });
             }
 
+
+            var ag_collect = videojs.sloelib.aggregate_collection;
+            if (!ag_collect) {
+                return; // Not initialsied yet
+            }
+            ag_collect.reset();
+
+            [['interval', 'Stroke duration'],
+             ['rate', 'Stroke rate'],
+             ['drive_time', 'Drive time'],
+             ['recovery_time', 'Recovery time'],
+             ['ratio', 'Ratio']].forEach (function(aggregate) {
+                var count = 0;
+                var total = 0;
+                data_list.forEach(function(data) {
+                    if (data[aggregate[0]]) {
+                        count += 1;
+                        total += data[aggregate[0]];
+                    }
+                });
+                if (count > 0) {
+                    var mean = total / count;
+                    var sum_dev_squared = 0;
+
+                    data_list.forEach(function(data) {
+                        if (data[aggregate[0]]) {
+                            var deviation = data[aggregate[0]] - mean;
+                            sum_dev_squared += deviation * deviation;
+                        }
+                    });
+
+                    var variance = undefined;
+                    var sdev = undefined;
+                    var cvar = undefined;
+                    if (count > 1) {
+                        variance = sum_dev_squared / (count - 1);
+                        sdev = Math.sqrt(variance);
+                        cvar = sdev / Math.abs(mean);
+                    }
+
+                    ag_collect.add({
+                        parameter: aggregate[1],
+                        count: count,
+                        mean: mean,
+                        variance: variance,
+                        sdev: sdev,
+                        cvar: cvar
+                    });
+                }
+            });
+
             $('#sloe-marker-table').append(videojs.sloelib.marker_grid.render().el);
+            $('#sloe-aggregate-table').append(videojs.sloelib.aggregate_grid.render().el);
         },
 
         encodeMarkers: function(markers) {
@@ -177,7 +287,7 @@ videojs.sloelib = (function() {
                         class: mark_class,
                         sloedata: player.sloedata,
                         sloe_frame: marker_frame,
-                        time: marker_time,
+                        time: marker_time / player.sloedata.speed_factor,
                         type: mark_type
                     });
                 }
@@ -266,6 +376,16 @@ videojs.sloelib = (function() {
             });
 
             videojs.sloelib.marker_collection = new videojs.sloelib.Markers();
+
+
+            videojs.sloelib.Aggregate = Backbone.Model.extend({});
+
+            videojs.sloelib.Aggregates = Backbone.Collection.extend({
+                model: videojs.sloelib.Aggregate,
+                url: "test.json"
+            });
+
+            videojs.sloelib.aggregate_collection = new videojs.sloelib.Aggregates();
         },
 
         initGrids: function() {
@@ -287,6 +407,13 @@ videojs.sloelib = (function() {
                     decimals: 3
                 })
             }, {
+                name: "dcurrent",
+                label: "Delta to current",
+                editable: false,
+                cell: Backgrid.NumberCell.extend({
+                    decimals: 3
+                })
+            }, {
                 name: "frame",
                 label: "Frame",
                 editable: true,
@@ -294,11 +421,39 @@ videojs.sloelib = (function() {
                     decimals: 0
                 })
             }, {
-                name: "dcurrent",
-                label: "Delta to current",
+                name: "interval",
+                label: "Stroke duration",
                 editable: false,
                 cell: Backgrid.NumberCell.extend({
-                    decimals: 3
+                    decimals: 2
+                })
+            }, {
+                name: "rate",
+                label: "Stroke rate",
+                editable: false,
+                cell: Backgrid.NumberCell.extend({
+                    decimals: 2
+                })
+            }, {
+                name: "drive_time",
+                label: "Drive time",
+                editable: false,
+                cell: Backgrid.NumberCell.extend({
+                    decimals: 2
+                })
+            }, {
+                name: "recovery_time",
+                label: "Recovery time",
+                editable: false,
+                cell: Backgrid.NumberCell.extend({
+                    decimals: 2
+                })
+            }, {
+                name: "ratio",
+                label: "Ratio",
+                editable: false,
+                cell: Backgrid.NumberCell.extend({
+                    decimals: 2
                 })
             }];
 
@@ -306,6 +461,55 @@ videojs.sloelib = (function() {
                 columns: columns,
                 collection: videojs.sloelib.marker_collection
             });
+
+            var ag_columns = [{
+                name: "parameter",
+                label: "Parameter",
+                editable: false,
+                cell: "string"
+            }, {
+                name: "count",
+                label: "Sample size",
+                editable: false,
+                cell: Backgrid.NumberCell.extend({
+                    decimals: 0
+                })
+            }, {
+                name: "mean",
+                label: "Mean",
+                editable: false,
+                cell: Backgrid.NumberCell.extend({
+                    decimals: 3
+                })
+            }, {
+                name: "variance",
+                label: "Variance",
+                editable: false,
+                cell: Backgrid.NumberCell.extend({
+                    decimals: 3
+                })
+            }, {
+                name: "sdev",
+                label: "Standard deviation",
+                editable: false,
+                cell: Backgrid.NumberCell.extend({
+                    decimals: 3
+                })
+            }, {
+                name: "cvar",
+                label: "Coefficient of variation",
+                editable: false,
+                cell: Backgrid.NumberCell.extend({
+                    decimals: 3
+                })
+            }];
+
+            videojs.sloelib.aggregate_grid = new Backgrid.Grid({
+                columns: ag_columns,
+                collection: videojs.sloelib.aggregate_collection
+            });
+
+
         }
     };
 
