@@ -399,12 +399,12 @@ videojs.sloelib = (function() {
             }, {
                 name: "type",
                 label: "Type",
-                editable: true,
+                editable: false,
                 cell: "string"
             }, {
                 name: "time",
                 label: "Time",
-                editable: true,
+                editable: false,
                 cell: Backgrid.NumberCell.extend({
                     decimals: 3
                 })
@@ -418,7 +418,7 @@ videojs.sloelib = (function() {
             }, {
                 name: "frame",
                 label: "Frame",
-                editable: true,
+                editable: false,
                 cell: Backgrid.NumberCell.extend({
                     decimals: 0
                 })
