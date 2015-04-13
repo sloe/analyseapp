@@ -8,3 +8,4 @@ response.menu = [
     (T('Video'),URL('default','video')==URL(),URL('default','video'),[]),
     (T('Info'), False, "http://www.oarstack.com/2015/04/oarstack-analysis/", []),
 ]
+response.google_analytics_id="UA-52135133-2"
