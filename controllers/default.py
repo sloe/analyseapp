@@ -165,7 +165,7 @@ def treeselectoritems():
     tree_selector, selector_by_uuid = sloelib_get_tree_selector('final')
     tree_selected = "/".join(request.args)
     tree_entries = [x[1] for x in tree_selector if x[0] == tree_selected]
-    item_entries=[{'menutitle': 'Select', 'uuid': ''}] + tree_entries[0]
+    item_entries=[{'menutitle': 'Select', 'uuid': ''}] + sorted(tree_entries[0])
     return dict(
         current_item_uuid = session.current_selection or '',
         item_entries=item_entries
