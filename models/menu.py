@@ -6,4 +6,5 @@ response.meta.description = settings.description
 response.menu = [
     (T('Index'),URL('default','index')==URL(),URL('default','index'),[]),
     (T('Video'),URL('default','video')==URL(),URL('default','video'),[]),
+    (T('Info'), False, "http://www.oarstack.com/2015/04/oarstack-analysis/", []),
 ]
