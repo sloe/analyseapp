@@ -60,6 +60,7 @@ function treeselector_tree_onchange(){
     subtree_names = [x[0] for x in tree_selector]
 
     current_tree_options = [OPTION('Select', _value='')] + [OPTION(x['menutitle'], _value=x['uuid']) for x in current_tree_items]
+    current_tree_options = sorted(current_tree_options)
 
     form = FORM(
         SELECT(*subtree_names, value=current_tree, _id='treeselector_tree', _name='treeselector_tree', _onchange='treeselector_tree_onchange();'),
