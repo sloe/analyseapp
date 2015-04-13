@@ -232,11 +232,11 @@ videojs.sloelib = (function() {
 
                     var variance = undefined;
                     var sdev = undefined;
-                    var cvar = undefined;
+                    var pcvar = undefined;
                     if (count > 1) {
                         variance = sum_dev_squared / (count - 1);
                         sdev = Math.sqrt(variance);
-                        cvar = sdev / Math.abs(mean);
+                        pcvar = 100.0 * sdev / Math.abs(mean);
                     }
 
                     ag_collect.add({
@@ -245,7 +245,7 @@ videojs.sloelib = (function() {
                         mean: mean,
                         variance: variance,
                         sdev: sdev,
-                        cvar: cvar
+                        pcvar: pcvar
                     });
                 }
             });
@@ -498,11 +498,11 @@ videojs.sloelib = (function() {
                     decimals: 3
                 })
             }, {
-                name: "cvar",
-                label: "Coefficient of variation",
+                name: "pcvar",
+                label: "% Coefficient of variation",
                 editable: false,
                 cell: Backgrid.NumberCell.extend({
-                    decimals: 3
+                    decimals: 2
                 })
             }];
 
