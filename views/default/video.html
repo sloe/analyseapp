@@ -35,7 +35,7 @@ pass
 {{=size_script}}
 {{=selector_script}}
 
-{{ if not fii.gdrive_objects or len(fii.gdrive_objects) == 0: }}
+{{ if not fii.cdn_object: }}
 Video not found for this item
 {{ else: }}
 {{if vi.size_str:
@@ -44,10 +44,10 @@ Video not found for this item
         size_message = ". Internet Explorer might download the entire file before showing anything"
     pass
 }}
-{{=DIV(SPAN("Player will download ", B(vi.size_str), " when played"), SPAN(size_message, _id="sloe-progress"), '.')}}
+{{=DIV(SPAN("Player will download ", B(vi.size_str), " when played.  This may take several minutes for some files"), SPAN(size_message, _id="sloe-progress"), '.')}}
 {{pass}}
 <video id="sloe-video-main" class="video-js vjs-default-skin" controls preload="none" width="{{=width}}" height="{{=height}}">
-  <source src="https://googledrive.com/host/{{=fii.gdrive_objects[0]['id']}}" type='video/mp4' />
+  <source src="{{=fii.cdn_object}}" type='video/mp4' />
 
   <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a></p>
 </video>
@@ -104,6 +104,13 @@ _id="sloe-=link-control")
 {{=H3('Marker statistics')}}
 {{=DIV(TABLE([], _class='sloe-aggregate-table', _id='sloe-aggregate-table'), _class='sloe-video-info', _id='sloe-video-info-aggregates')}}
 {{ pass }}
+
+{{if fii.cdn_object:}}
+{{import urllib}}
+{{=DIV("Download: ", A(urllib.unquote(fii.cdn_object),
+ _href=fii.cdn_object,
+ _target="blank"))}}
+{{pass}}
 
 {{if fii.gdrive_objects and len(fii.gdrive_objects) > 0: }}
 <h3>Google Drive links</h3>

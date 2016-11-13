@@ -92,7 +92,11 @@ def sloelib_get_final_item_info(final_item_uuid):
             if filesize:
                 filesize = int(filesize)
             find_str = final_item._subtree+'/'+final_item.leafname
-            gdrive_objects = sloelib_gdrive_find(find_str)
+
+            # Disabled on move away from Google Drive
+            gdrive_objects = [] # sloelib_gdrive_find(find_str)
+
+            cdn_object = sloe_cdn_find(final_item)
 
             common_ids = sloelib.SloeUtil.extract_common_id(final_item.get('common_id', ''))
             genspec = sloelib.SloeTreeNode.get_object_by_uuid(common_ids.get('G'))
@@ -106,6 +110,7 @@ def sloelib_get_final_item_info(final_item_uuid):
             related_remote_items = sloelib.SloeTreeUtil.find_remoteitems_for_source_item(source_item.uuid)
 
         return Storage(
+            cdn_object=cdn_object,
             common_ids=common_ids,
             filesize=filesize,
             final_item=final_item,
@@ -119,9 +124,9 @@ def sloelib_get_final_item_info(final_item_uuid):
         )
 
     cache_id = "final_item_%s" % final_item_uuid
-    final_item_info = cache.disk(cache_id, lambda: _reload_item(final_item_uuid), time_expire=30)
-    if not final_item_info.gdrive_objects:
-        # Regenerate info if there are no gdrive items
+    final_item_info = cache.disk(cache_id, lambda: _reload_item(final_item_uuid), time_expire=300)
+    if not final_item_info.cdn_object:
+        # Regenerate info if there are no CDN item
         final_item_info = cache.disk(cache_id, lambda: _reload_item(final_item_uuid), time_expire=0)
 
     return final_item_info
@@ -135,7 +140,7 @@ def sloelib_get_item(item_uuid):
         item = sloelib.SloeTreeNode.get_object_by_uuid_or_none(_item_uuid)
         return item
     cache_id = "item_%s" % item_uuid
-    item_info = cache.disk(cache_id, lambda: _reload_item(item_uuid), time_expire=30)
+    item_info = cache.disk(cache_id, lambda: _reload_item(item_uuid), time_expire=300)
     if not item_info:
         item_info = cache.disk(cache_id, lambda: _reload_item(item_uuid), time_expire=0)
     return item_info

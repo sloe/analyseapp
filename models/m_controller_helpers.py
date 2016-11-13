@@ -19,3 +19,30 @@ def sloe_process_singlevid_request():
             raise HTTP(404, "Cannot decode UUID from %s</br>%s" % (XML(req_uuid, sanitize=True), A("Home", _href=URL('index'))))
         if req_uuid != session.current_selection:
             sloe_reset_current_if_valid(req_uuid)
+
+
+def sloe_if_url_is_loadable(test_url):
+    import requests
+    import requests.exceptions
+    try:
+        response = requests.head(test_url)
+    except requests.exceptions.RequestException as e:
+        return False
+    return response.status_code == 200
+
+
+def sloe_cdn_find(final_item):
+    import urllib
+    cdn_subpath = urllib.quote(final_item.get_file_url_subpath())
+
+    cdn_urls = [
+        "https://cdn.oarstack.com/%s" % cdn_subpath,
+        "https://cdn-origin.oarstack.com/%s" % cdn_subpath
+    ]
+
+    for cdn_url in cdn_urls:
+        if sloe_if_url_is_loadable(cdn_url):
+            return cdn_url
+
+    return None
+
